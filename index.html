@@ -3,9 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="Регистратура больницы | Локальное хранилище + EmailJS">
+  <meta name="description" content="Регистратура больницы | Отладочная версия v3.0">
   <meta name="theme-color" content="#0d6efd">
-  <title>🏥 Регистратура Pro | Стабильная версия</title>
+  <title>🏥 Регистратура | Stable v3.0</title>
   <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
   <style>
     :root {
@@ -33,13 +33,13 @@
     .card-title { font-size: 1.2rem; font-weight: 600; margin: 0; }
     
     .grid-2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1rem; }
-    .form-group { margin-bottom: 1rem; }
+    .form-group { margin-bottom: 1rem; position: relative; }
     .form-label { display: block; margin-bottom: 0.35rem; font-weight: 500; color: #495057; font-size: 0.9rem; }
     .form-control { width: 100%; padding: 0.6rem 0.75rem; border: 1px solid var(--border); border-radius: var(--radius); transition: var(--trans); background: #fff; }
     .form-control:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 0.2rem rgba(13,110,253,0.25); }
-    .form-control.is-invalid { border-color: var(--danger); background-image: url("image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='none' stroke='%23dc3545' viewBox='0 0 12 12'%3e%3ccircle cx='6' cy='6' r='4.5'/%3e%3cpath stroke-width='1.5' d='M5.5 6.5h.01m-.5 2h.01'/%3e%3c/svg%3e"); background-repeat: no-repeat; background-position: right 0.75rem center; background-size: 12px; }
+    .form-control.is-invalid { border-color: var(--danger); }
     .invalid-feedback { color: var(--danger); font-size: 0.8rem; margin-top: 0.25rem; display: none; }
-    .form-control.is-invalid + .invalid-feedback { display: block; }
+    .form-control.is-invalid ~ .invalid-feedback { display: block; }
     
     .btn { display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem; padding: 0.6rem 1rem; border: 1px solid transparent; border-radius: var(--radius); cursor: pointer; transition: var(--trans); font-weight: 500; background: transparent; }
     .btn:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
@@ -90,6 +90,8 @@
     .spinner { width: 1rem; height: 1rem; border: 2px solid rgba(255,255,255,0.3); border-top-color: #fff; border-radius: 50%; animation: spin 0.8s linear infinite; }
     @keyframes spin { to { transform: rotate(360deg); } }
     .log-box { background: #1e1e1e; color: #d4d4d4; padding: 1rem; border-radius: var(--radius); font-family: monospace; font-size: 0.8rem; max-height: 250px; overflow: auto; white-space: pre-wrap; }
+    .crash-banner { background: #dc3545; color: white; padding: 1rem; text-align: center; font-weight: 600; display: none; }
+    .crash-banner.active { display: block; }
     
     @media (max-width: 768px) {
       .nav { width: 100%; justify-content: center; overflow-x: auto; padding: 0.5rem 0; }
@@ -99,6 +101,8 @@
   </style>
 </head>
 <body>
+
+  <div id="crash-banner" class="crash-banner">⚠️ Обнаружена критическая ошибка. Проверьте консоль (F12).</div>
 
   <header class="header">
     <div class="brand">🏥 Регистратура</div>
@@ -111,8 +115,6 @@
   </header>
 
   <main class="container">
-    <div id="alert-area"></div>
-
     <section id="tab-patients">
       <div class="card">
         <div class="card-header"><h2 class="card-title">Регистрация пациента</h2></div>
@@ -151,7 +153,7 @@
             <div class="form-group"><label class="form-label">Дата *</label><input type="date" id="a-date" class="form-control" required><div class="invalid-feedback"></div></div>
             <div class="form-group"><label class="form-label">Время *</label><select id="a-time" class="form-control" required><option value="">-- Слот --</option><option value="09:00">09:00</option><option value="09:30">09:30</option><option value="10:00">10:00</option><option value="10:30">10:30</option><option value="11:00">11:00</option><option value="11:30">11:30</option><option value="14:00">14:00</option><option value="14:30">14:30</option><option value="15:00">15:00</option><option value="15:30">15:30</option><option value="16:00">16:00</option></select><div class="invalid-feedback"></div></div>
           </div>
-          <div class="form-group"><label class="form-label">Причина обращения</label><textarea id="a-reason" class="form-control" rows="2" placeholder="Жалобы, направление, особые пометки..."></textarea></div>
+          <div class="form-group"><label class="form-label">Причина обращения</label><textarea id="a-reason" class="form-control" rows="2" placeholder="Жалобы, направление..."></textarea></div>
           <div class="d-flex justify-between align-center mt-3">
             <button type="button" class="btn btn-outline" id="btn-clear-a">Очистить</button>
             <button type="submit" class="btn btn-success btn-lg" id="btn-save-a">Записать и отправить Email</button>
@@ -189,20 +191,20 @@
 
     <section id="tab-settings" class="hidden">
       <div class="card">
-        <h2 class="card-title mb-3">⚙️ Настройки EmailJS</h2>
+        <h2 class="card-title mb-3">⚙️ Диагностика и Настройки</h2>
         <div class="grid-2">
           <div class="form-group"><label class="form-label">Public Key</label><input type="text" class="form-control" value="C-TWjq5k1zdkhB8Vb" readonly></div>
           <div class="form-group"><label class="form-label">Service ID</label><input type="text" class="form-control" value="service_s3bf4xi" readonly></div>
           <div class="form-group"><label class="form-label">Template ID</label><input type="text" class="form-control" value="template_joc2wh9" readonly></div>
         </div>
         <p class="muted mt-3">💡 В шаблоне EmailJS должны быть переменные: <code>{{to_email}}</code>, <code>{{to_name}}</code>, <code>{{doctor_name}}</code>, <code>{{specialty}}</code>, <code>{{date_time}}</code>, <code>{{appointment_id}}</code>, <code>{{notes}}</code></p>
-        <div class="mt-3">
-          <button class="btn btn-primary" id="btn-test-email">📧 Тест соединения</button>
-          <span id="email-status" class="muted" style="margin-left: 1rem;">Ожидание...</span>
+        <div class="mt-3 d-flex gap-2 align-center">
+          <button class="btn btn-primary" id="btn-test-email">📧 Тест EmailJS</button>
+          <span id="email-status" class="muted">Ожидание...</span>
         </div>
         <div class="mt-3">
-          <h4 class="mb-3">Лог ошибок</h4>
-          <div class="log-box" id="diag-log">// Ошибки будут отображаться здесь</div>
+          <h4 class="mb-3">Журнал ошибок</h4>
+          <div class="log-box" id="diag-log">// Системный журнал</div>
         </div>
       </div>
     </section>
@@ -213,68 +215,78 @@
 
   <script>
     /* ========================================================
-       🏥 Hospital Registry Pro v2.1 | Stable & Diagnostics
-       Стек: Vanilla JS, LocalStorage, EmailJS, Event Delegation
+       🏥 Hospital Registry v3.0 | Bulletproof Registration
+       Исправлены: валидация, localStorage краши, async блоки, 
+       селекторы ошибок, глобальные исключения.
        ======================================================== */
     
-    // 1. КОНФИГУРАЦИЯ
     const CFG = {
       EMAILJS: { pub: 'C-TWjq5k1zdkhB8Vb', svc: 'service_s3bf4xi', tpl: 'template_joc2wh9' },
-      STORAGE_KEYS: { patients: 'hr_v2_patients', appts: 'hr_v2_appts', count: 'hr_v2_counters' },
-      LOG_MAX: 50
+      STORAGE: { p: 'hr_v3_patients', a: 'hr_v3_appts', c: 'hr_v3_count' },
+      LOG_MAX: 60
     };
 
-    // 2. СОСТОЯНИЕ ПРИЛОЖЕНИЯ
-    const state = {
-      patients: [],
-      appts: [],
-      counters: { p: 1000, a: 5000 },
-      filters: { search: '', status: 'all', date: '' },
-      logs: []
-    };
+    const state = { patients: [], appts: [], count: { p: 1000, a: 5000 }, filters: { search: '', status: 'all', date: '' }, logs: [] };
 
-    // 3. УТИЛИТЫ
     const $ = s => document.querySelector(s);
     const $$ = s => document.querySelectorAll(s);
     const esc = s => String(s||'').replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
     const today = () => new Date().toISOString().split('T')[0];
-    const logDiag = msg => {
-      state.logs.unshift(`[${new Date().toLocaleTimeString()}] ${msg}`);
+    const log = (msg, type='info') => {
+      const entry = `[${new Date().toLocaleTimeString()}] [${type.toUpperCase()}] ${msg}`;
+      state.logs.unshift(entry);
       if(state.logs.length > CFG.LOG_MAX) state.logs.pop();
-      $('#diag-log').textContent = state.logs.join('\n');
+      const box = $('#diag-log'); if(box) box.textContent = state.logs.join('\n');
+      console[type === 'error' ? 'error' : 'log'](entry);
     };
 
-    // 4. ХРАНИЛИЩЕ
     const Store = {
       load() {
         try {
-          state.patients = JSON.parse(localStorage.getItem(CFG.STORAGE_KEYS.patients) || '[]');
-          state.appts = JSON.parse(localStorage.getItem(CFG.STORAGE_KEYS.appts) || '[]');
-          const c = JSON.parse(localStorage.getItem(CFG.STORAGE_KEYS.count) || '{}');
-          if(c.p) state.counters.p = c.p;
-          if(c.a) state.counters.a = c.a;
-        } catch(e) { console.warn('Storage load error', e); logDiag('Ошибка загрузки хранилища'); }
+          state.patients = JSON.parse(localStorage.getItem(CFG.STORAGE.p) || '[]');
+          state.appts = JSON.parse(localStorage.getItem(CFG.STORAGE.a) || '[]');
+          const c = JSON.parse(localStorage.getItem(CFG.STORAGE.c) || '{}');
+          if(c.p) state.count.p = c.p;
+          if(c.a) state.count.a = c.a;
+          log('Данные загружены из хранилища');
+        } catch(e) { log('Ошибка загрузки: ' + e.message, 'error'); }
       },
       save() {
         try {
-          localStorage.setItem(CFG.STORAGE_KEYS.patients, JSON.stringify(state.patients));
-          localStorage.setItem(CFG.STORAGE_KEYS.appts, JSON.stringify(state.appts));
-          localStorage.setItem(CFG.STORAGE_KEYS.count, JSON.stringify(state.counters));
-        } catch(e) { console.warn('Storage save error', e); logDiag('Хранилище заполнено или заблокировано'); }
+          localStorage.setItem(CFG.STORAGE.p, JSON.stringify(state.patients));
+          localStorage.setItem(CFG.STORAGE.a, JSON.stringify(state.appts));
+          localStorage.setItem(CFG.STORAGE.c, JSON.stringify(state.count));
+        } catch(e) {
+          log('Ошибка сохранения: ' + e.message, 'error');
+          UI.toast('Не удалось сохранить данные. Хранилище заполнено или заблокировано.', 'error');
+        }
       }
     };
 
-    // 5. ВАЛИДАТОР
     const Valid = {
       email: v => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v),
       phone: v => /^\+?\d{10,15}$/.test(v.replace(/\D/g,'')),
       age: v => { if(!v) return false; const b=new Date(v), t=new Date(); let a=t.getFullYear()-b.getFullYear(); if(t.getMonth()<b.getMonth()||(t.getMonth()===b.getMonth()&&t.getDate()<b.getDate())) a--; return a>=0&&a<=120; }
     };
-    const setErr = (id, msg) => { const e=$(id); if(e){e.classList.add('is-invalid'); const f=e.nextElementSibling; if(f&&f.classList.contains('invalid-feedback')) f.textContent=msg;} };
-    const clearErr = id => { const e=$(id); if(e){e.classList.remove('is-invalid'); const f=e.nextElementSibling; if(f&&f.classList.contains('invalid-feedback')) f.textContent='';} };
+
+    const setErr = (inputId, msg) => {
+      const el = $(inputId);
+      if(el) {
+        el.classList.add('is-invalid');
+        const fb = el.closest('.form-group').querySelector('.invalid-feedback');
+        if(fb) fb.textContent = msg;
+      }
+    };
+    const clearErr = (inputId) => {
+      const el = $(inputId);
+      if(el) {
+        el.classList.remove('is-invalid');
+        const fb = el.closest('.form-group').querySelector('.invalid-feedback');
+        if(fb) fb.textContent = '';
+      }
+    };
     const clearAll = () => $$('.form-control.is-invalid').forEach(el => clearErr(`#${el.id}`));
 
-    // 6. UI РЕНДЕРИНГ
     const UI = {
       toast(msg, type='info') {
         const box = $('#toast-area'); const t = document.createElement('div');
@@ -285,10 +297,8 @@
       },
       modal(title, html, cb) {
         $('#modal-title').textContent = title; $('#modal-body').innerHTML = html; $('#modal').classList.add('active');
-        const confirmFn = () => { if(cb) cb(); $('#modal').classList.remove('active'); };
-        $('#modal-confirm').onclick = confirmFn;
+        $('#modal-confirm').onclick = () => { if(cb) cb(); $('#modal').classList.remove('active'); };
         $('#modal-cancel').onclick = $('#modal-close').onclick = () => $('#modal').classList.remove('active');
-        setTimeout(() => $('#modal-confirm').focus(), 100);
       },
       renderP() {
         const tbody = $('#tbody-p'); tbody.innerHTML = '';
@@ -310,7 +320,7 @@
         list.sort((a,b)=>(a.date+a.time).localeCompare(b.date+b.time));
         if(!list.length) { $('#table-a').parentElement.classList.add('hidden'); $('#empty-a').classList.remove('hidden'); return; }
         $('#table-a').parentElement.classList.remove('hidden'); $('#empty-a').classList.add('hidden');
-        const st = {scheduled:['Запланировано','badge-scheduled'], completed:['Проведено','badge-completed'], cancelled:['Отменено','badge-cancelled']};
+        const st = {scheduled:['Запланировано','badge-scheduled'], completed:['Проведено','badge-completed'], cancelled:['Отменено','badge-cancelled'], 'no-show':['Не явился','badge-no-show']};
         list.forEach(a => {
           const p = state.patients.find(x=>x.id===a.patientId);
           const [txt, cls] = st[a.status]||['—',''];
@@ -336,129 +346,140 @@
         $$('[id^="tab-"]').forEach(s => s.classList.toggle('hidden', s.id !== `tab-${tab}`));
         if(tab==='appointments') { UI.renderA(); UI.renderSelects(); }
         if(tab==='dashboard') UI.updateStats();
-        if(tab==='settings') $('#diag-log').textContent = state.logs.join('\n');
       }
     };
 
-    // 7. EMAIL СЕРВИС (С ДИАГНОСТИКОЙ И FALLBACK)
     const EmailSvc = {
       init() {
-        try { emailjs.init(CFG.EMAILJS.pub); logDiag('EmailJS SDK инициализирован'); }
-        catch(e) { logDiag('Ошибка инициализации EmailJS: '+e.message); }
+        try { emailjs.init(CFG.EMAILJS.pub); log('EmailJS SDK инициализирован'); }
+        catch(e) { log('Ошибка инициализации EmailJS: '+e.message, 'error'); }
       },
       async send(p, a, type='confirm') {
+        if(!p?.email) { log('Нет email пациента', 'warn'); return false; }
         const [spec, cab] = a.doctor.split(' | ');
-        const params = {
-          to_email: p.email,
-          to_name: `${p.last} ${p.first}`,
-          doctor_name: cab || spec,
-          specialty: spec,
-          date_time: `${a.date} ${a.time}`,
-          appointment_id: `#${a.id}`,
-          notes: a.reason || 'Стандартный приём'
-        };
+        const params = { to_email: p.email, to_name: `${p.last} ${p.first}`, doctor_name: cab||spec, specialty: spec, date_time: `${a.date} ${a.time}`, appointment_id: `#${a.id}`, notes: a.reason||'Стандартный приём' };
         try {
-          logDiag(`Отправка ${type} на ${p.email}...`);
+          log(`Отправка ${type} на ${p.email}...`);
           const res = await emailjs.send(CFG.EMAILJS.svc, CFG.EMAILJS.tpl, params);
-          logDiag(`✅ Успешно (Status: ${res.status})`);
+          log(`✅ Успешно (Status: ${res.status})`);
           UI.toast(`Email ${type==='confirm'?'подтверждения':'отмены'} отправлен`, 'success');
           return true;
         } catch(err) {
-          const msg = err.text || err.message || 'Unknown error';
-          logDiag(`❌ Ошибка отправки: ${msg} (Status: ${err.status||0})`);
-          UI.toast(`Ошибка Email: ${msg}`, 'error');
-          
-          // Fallback: открываем почтовый клиент если API недоступен
-          const fallbackUrl = `mailto:${p.email}?subject=${encodeURIComponent(type==='confirm'?'Подтверждение записи #'+a.id:'Отмена записи #'+a.id)}&body=${encodeURIComponent(`Здравствуйте, ${p.last} ${p.first}.\n\nВрач: ${spec} (${cab})\nДата: ${a.date} ${a.time}\nНомер записи: ${a.id}\n\nПричина: ${a.reason||'Не указана'}`)}`;
-          window.open(fallbackUrl, '_blank');
-          logDiag('🔄 Активирован fallback через mailto://');
+          const msg = err.text || err.message || 'Unknown';
+          log(`❌ Ошибка Email: ${msg}`, 'error');
+          UI.toast(`Ошибка Email: ${msg}. Данные сохранены локально.`, 'error');
           return false;
         }
       }
     };
 
-    // 8. ОБРАБОТЧИКИ
-    const handlePSubmit = async (e) => {
-      e.preventDefault(); clearAll();
-      const d = { last:$('#p-last').value.trim(), first:$('#p-first').value.trim(), mid:$('#p-mid').value.trim(), birth:$('#p-birth').value, phone:$('#p-phone').value.trim(), email:$('#p-email').value.trim(), policy:$('#p-policy').value.trim(), addr:$('#p-addr').value.trim() };
-      let ok = true;
-      if(!d.last){setErr('#p-last','Обязательно');ok=false;}
-      if(!d.first){setErr('#p-first','Обязательно');ok=false;}
-      if(!d.birth||!Valid.age(d.birth)){setErr('#p-birth','Проверьте дату');ok=false;}
-      if(!Valid.phone(d.phone)){setErr('#p-phone','Формат: +7XXXXXXXXXX');ok=false;}
-      if(!Valid.email(d.email)){setErr('#p-email','Неверный email');ok=false;}
-      if(!ok) return;
-      if(state.patients.some(p=>p.phone.replace(/\D/g,'')===d.phone.replace(/\D/g,''))) return UI.toast('Телефон уже зарегистрирован','error');
-      
-      const btn = $('#btn-save-p'); btn.disabled=true; btn.innerHTML='<span class="spinner"></span>';
-      state.patients.push({id:state.counters.p++, ...d, createdAt:new Date().toISOString()});
-      Store.save(); UI.renderP(); UI.renderSelects(); e.target.reset();
-      btn.disabled=false; btn.textContent='Зарегистрировать';
-      UI.toast('Пациент добавлен','success');
+    const handlePSubmit = (e) => {
+      e.preventDefault();
+      try {
+        clearAll();
+        const d = {
+          last: $('#p-last').value.trim(), first: $('#p-first').value.trim(), mid: $('#p-mid').value.trim(),
+          birth: $('#p-birth').value, phone: $('#p-phone').value.trim(), email: $('#p-email').value.trim(),
+          policy: $('#p-policy').value.trim(), addr: $('#p-addr').value.trim()
+        };
+        let ok = true;
+        if(!d.last){setErr('#p-last','Фамилия обязательна');ok=false;}
+        if(!d.first){setErr('#p-first','Имя обязательно');ok=false;}
+        if(!d.birth||!Valid.age(d.birth)){setErr('#p-birth','Укажите корректную дату рождения');ok=false;}
+        if(!Valid.phone(d.phone)){setErr('#p-phone','Формат: +7XXXXXXXXXX');ok=false;}
+        if(!Valid.email(d.email)){setErr('#p-email','Введите корректный email');ok=false;}
+        if(!ok) { log('Валидация формы регистрации не пройдена', 'warn'); return; }
+        if(state.patients.some(p=>p.phone.replace(/\D/g,'')===d.phone.replace(/\D/g,''))) { UI.toast('Пациент с таким телефоном уже зарегистрирован','error'); return; }
+        
+        const btn = $('#btn-save-p');
+        btn.disabled = true; btn.textContent = 'Сохранение...';
+        
+        state.patients.push({id: state.count.p++, ...d, createdAt: new Date().toISOString(), status: 'active'});
+        Store.save();
+        UI.renderP(); UI.renderSelects();
+        e.target.reset();
+        
+        btn.disabled = false; btn.textContent = 'Зарегистрировать';
+        UI.toast('✅ Пациент успешно добавлен в базу','success');
+        log(`Регистрация пациента #${state.count.p-1} завершена`);
+      } catch(err) {
+        log('Критическая ошибка регистрации: ' + err.message, 'error');
+        UI.toast('❌ Ошибка регистрации: ' + err.message, 'error');
+        $('#btn-save-p').disabled = false; $('#btn-save-p').textContent = 'Зарегистрировать';
+      }
     };
 
     const handleASubmit = async (e) => {
-      e.preventDefault(); clearAll();
-      const d = { patientId:parseInt($('#a-patient').value), doctor:$('#a-doctor').value, date:$('#a-date').value, time:$('#a-time').value, reason:$('#a-reason').value.trim() };
-      let ok = true;
-      if(!d.patientId){setErr('#a-patient','Выберите пациента');ok=false;}
-      if(!d.doctor){setErr('#a-doctor','Выберите врача');ok=false;}
-      if(!d.date||d.date<today()){setErr('#a-date','Дата не в прошлом');ok=false;}
-      if(!d.time){setErr('#a-time','Выберите время');ok=false;}
-      if(!ok) return;
-      if(state.appts.some(a=>a.doctor===d.doctor&&a.date===d.date&&a.time===d.time&&a.status!=='cancelled')) return UI.toast('Врач занят в это время','error');
+      e.preventDefault();
+      try {
+        clearAll();
+        const d = { patientId: parseInt($('#a-patient').value), doctor: $('#a-doctor').value, date: $('#a-date').value, time: $('#a-time').value, reason: $('#a-reason').value.trim() };
+        let ok = true;
+        if(!d.patientId){setErr('#a-patient','Выберите пациента');ok=false;}
+        if(!d.doctor){setErr('#a-doctor','Выберите врача');ok=false;}
+        if(!d.date||d.date<today()){setErr('#a-date','Дата не может быть в прошлом');ok=false;}
+        if(!d.time){setErr('#a-time','Выберите время приёма');ok=false;}
+        if(!ok) return;
+        if(state.appts.some(a=>a.doctor===d.doctor&&a.date===d.date&&a.time===d.time&&a.status!=='cancelled')) { UI.toast('⚠️ Врач занят в это время','warning'); return; }
 
-      const btn = $('#btn-save-a'); btn.disabled=true; btn.innerHTML='<span class="spinner"></span>';
-      const appt = {id:state.counters.a++, ...d, status:'scheduled', createdAt:new Date().toISOString()};
-      state.appts.push(appt); Store.save(); UI.renderA(); UI.renderSelects();
-      const p = state.patients.find(x=>x.id===d.patientId);
-      await EmailSvc.send(p, appt, 'confirm');
-      e.target.reset(); btn.disabled=false; btn.textContent='Записать и отправить Email';
-      UI.toast('Запись создана','success');
+        const btn = $('#btn-save-a'); btn.disabled=true; btn.textContent='Оформление...';
+        const appt = {id:state.count.a++, ...d, status:'scheduled', createdAt:new Date().toISOString()};
+        state.appts.push(appt); Store.save(); UI.renderA(); UI.renderSelects();
+        const p = state.patients.find(x=>x.id===d.patientId);
+        await EmailSvc.send(p, appt, 'confirm');
+        e.target.reset();
+        btn.disabled=false; btn.textContent='Записать и отправить Email';
+        UI.toast('✅ Запись создана','success');
+      } catch(err) {
+        log('Ошибка записи: ' + err.message, 'error');
+        UI.toast('❌ Ошибка записи: ' + err.message, 'error');
+        $('#btn-save-a').disabled = false; $('#btn-save-a').textContent = 'Записать и отправить Email';
+      }
     };
 
-    // 9. ИНИЦИАЛИЗАЦИЯ
+    // ГЛОБАЛЬНАЯ ЗАЩИТА ОТ КРАШЕЙ
+    window.onerror = function(msg, url, line, col, error) {
+      log(`Global Crash: ${msg} (Line: ${line})`, 'error');
+      $('#crash-banner').textContent = `⚠️ Ошибка скрипта: ${msg}. Откройте консоль (F12) для деталей.`;
+      $('#crash-banner').classList.add('active');
+      return false;
+    };
+    window.addEventListener('unhandledrejection', e => log('Unhandled Promise: ' + e.reason, 'error'));
+
     document.addEventListener('DOMContentLoaded', () => {
       Store.load(); UI.renderP(); UI.renderA(); UI.renderSelects(); UI.updateStats(); UI.setTab('patients');
-      EmailSvc.init();
-      $('#email-status').textContent = 'SDK загружен. Нажмите "Тест соединения".';
+      EmailSvc.init(); $('#email-status').textContent = 'Готов к работе';
 
-      // Навигация
       $$('.nav-btn').forEach(b => b.addEventListener('click', () => UI.setTab(b.dataset.tab)));
-
-      // Формы
       $('#patient-form').addEventListener('submit', handlePSubmit);
       $('#appt-form').addEventListener('submit', handleASubmit);
       $('#btn-clear-a').addEventListener('click', () => { $('#appt-form').reset(); clearAll(); });
 
-      // Делегирование событий для таблиц
       $('#table-p').addEventListener('click', e => {
         const btn = e.target.closest('button'); if(!btn) return;
         const id=parseInt(btn.dataset.id), act=btn.dataset.action;
         if(act==='del-p') UI.modal('Удалить пациента?', 'Записи останутся в архиве.', () => { state.patients=state.patients.filter(p=>p.id!==id); Store.save(); UI.renderP(); UI.renderSelects(); UI.toast('Удалено'); });
-        if(act==='edit-p') UI.toast('Редактирование в разработке','info');
+        if(act==='edit-p') UI.toast('Редактирование временно недоступно','info');
       });
       $('#table-a').addEventListener('click', e => {
         const btn = e.target.closest('button'); if(!btn) return;
         const id=parseInt(btn.dataset.id), act=btn.dataset.action;
-        const appt = state.appts.find(a=>a.id===id);
+        const appt = state.appts.find(a=>a.id===id); if(!appt) return;
         if(act==='done'){appt.status='completed';Store.save();UI.renderA();UI.updateStats();UI.toast('Приём проведён');}
         if(act==='noshow'){appt.status='no-show';Store.save();UI.renderA();UI.updateStats();UI.toast('Отмечено: Не явился','warning');}
         if(act==='cancel') UI.modal('Отменить запись?', 'Пациент получит уведомление.', async () => { appt.status='cancelled'; Store.save(); UI.renderA(); UI.updateStats(); const p=state.patients.find(x=>x.id===appt.patientId); if(p) await EmailSvc.send(p, appt, 'cancel'); });
       });
 
-      // Фильтры и поиск
       $('#search-p').addEventListener('input', e => { state.filters.search=e.target.value; UI.renderP(); });
       $('#btn-apply-filter').addEventListener('click', () => { state.filters.status=$('#filter-status').value; state.filters.date=$('#filter-date').value; UI.renderA(); });
 
-      // Экспорт / Бэкап
       $('#btn-export-p').addEventListener('click', () => {
         if(!state.patients.length) return UI.toast('Нет данных','warning');
         const csv = 'ID,Фамилия,Имя,Телефон,Email,Дата рождения,Полис,Адрес\n' + state.patients.map(p=>`${p.id},"${p.last}","${p.first}","${p.phone}","${p.email}","${p.birth}","${p.policy}","${p.addr}"`).join('\n');
         const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([`\uFEFF${csv}`],{type:'text/csv'})); a.download=`patients_${today()}.csv`; a.click();
       });
       $('#btn-download-backup').addEventListener('click', () => {
-        const data = {v:'2.1', exported:new Date().toISOString(), patients:state.patients, appts:state.appts, counters:state.counters};
+        const data = {v:'3.0', exported:new Date().toISOString(), patients:state.patients, appts:state.appts, count:state.count};
         const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([JSON.stringify(data,null,2)],{type:'application/json'})); a.download=`backup_${today()}.json`; a.click();
       });
       $('#btn-restore-trigger').addEventListener('click', () => $('#input-restore').click());
@@ -466,27 +487,21 @@
         const f=e.target.files[0]; if(!f) return;
         const r=new FileReader(); r.onload=ev => {
           try {
-            const d=JSON.parse(ev.target.result); state.patients=d.patients||[]; state.appts=d.appts||[]; if(d.counters){state.counters.p=d.counters.p;state.counters.a=d.counters.a;}
-            Store.save(); UI.renderP(); UI.renderA(); UI.renderSelects(); UI.updateStats(); UI.toast('Данные восстановлены','success'); logDiag('Восстановлено из бэкапа');
-          } catch(err) { UI.toast('Ошибка файла','error'); logDiag('Ошибка восстановления: '+err.message); }
+            const d=JSON.parse(ev.target.result); state.patients=d.patients||[]; state.appts=d.appts||[]; if(d.count){state.count.p=d.count.p;state.count.a=d.count.a;}
+            Store.save(); UI.renderP(); UI.renderA(); UI.renderSelects(); UI.updateStats(); UI.toast('✅ Данные восстановлены','success'); log('Восстановлено из бэкапа');
+          } catch(err) { UI.toast('❌ Ошибка файла','error'); log('Ошибка восстановления: '+err.message, 'error'); }
         }; r.readAsText(f); e.target.value='';
       });
-      $('#btn-wipe').addEventListener('click', () => UI.modal('Очистить всё?', 'Данные будут удалены безвозвратно.', () => { localStorage.clear(); state.patients=[]; state.appts=[]; state.counters={p:1000,a:5000}; state.logs=[]; UI.renderP(); UI.renderA(); UI.renderSelects(); UI.updateStats(); UI.toast('База очищена'); logDiag('База полностью очищена'); }));
+      $('#btn-wipe').addEventListener('click', () => UI.modal('🗑 Очистить всё?', 'Все данные будут удалены безвозвратно.', () => { localStorage.clear(); state.patients=[]; state.appts=[]; state.count={p:1000,a:5000}; state.logs=[]; UI.renderP(); UI.renderA(); UI.renderSelects(); UI.updateStats(); UI.toast('База очищена'); log('Полная очистка выполнена'); }));
 
-      // Диагностика Email
       $('#btn-test-email').addEventListener('click', async () => {
         const btn=$('#btn-test-email'); btn.disabled=true; btn.textContent='Тестирование...';
         $('#email-status').textContent = 'Проверка соединения...';
         try {
-          await emailjs.send(CFG.EMAILJS.svc, CFG.EMAILJS.tpl, { to_email:'test@example.com', to_name:'Test User', doctor_name:'Врач', specialty:'Тест', date_time:today()+' 10:00', appointment_id:'#TEST', notes:'Диагностика' });
-          $('#email-status').textContent = '✅ Соединение успешно';
-          logDiag('Тест EmailJS пройден успешно');
-          UI.toast('EmailJS работает корректно','success');
-        } catch(err) {
-          $('#email-status').textContent = `❌ Ошибка: ${err.text||err.message}`;
-          logDiag('Тест EmailJS провалился: '+(err.text||err.message));
-          UI.toast('Проверьте настройки EmailJS','error');
-        } finally { btn.disabled=false; btn.textContent='📧 Тест соединения'; }
+          await emailjs.send(CFG.EMAILJS.svc, CFG.EMAILJS.tpl, { to_email:'test@example.com', to_name:'Test', doctor_name:'Врач', specialty:'Тест', date_time:today()+' 10:00', appointment_id:'#TEST', notes:'Диагностика' });
+          $('#email-status').textContent = '✅ Соединение успешно'; log('Тест EmailJS пройден'); UI.toast('EmailJS работает корректно','success');
+        } catch(err) { $('#email-status').textContent = `❌ Ошибка: ${err.text||err.message}`; log('Тест провалился: '+(err.text||err.message), 'error'); UI.toast('Проверьте настройки EmailJS','error'); }
+        finally { btn.disabled=false; btn.textContent='📧 Тест EmailJS'; }
       });
     });
   </script>
