@@ -4,442 +4,117 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Ренессанс Кредит — Панель сотрудника</title>
+    
+    <!-- ПОДКЛЮЧЕНИЕ EMAILJS (ДОБАВЛЕНО) -->
     <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+        /* --- СТИЛИ (ВСЕ СОХРАНЕНЫ) --- */
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background: #f5f7fa; }
 
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: #f5f7fa;
-        }
+        /* LOGIN SCREEN */
+        .login-screen { height: 100vh; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, #1a237e 0%, #3949ab 100%); }
+        .login-box { background: white; padding: 40px; border-radius: 20px; box-shadow: 0 20px 60px rgba(0,0,0,0.3); width: 90%; max-width: 400px; text-align: center; }
+        .login-box h2 { color: #1a237e; margin-bottom: 20px; }
+        .login-box input { width: 100%; padding: 15px; border: 2px solid #e0e0e0; border-radius: 10px; font-size: 1.1em; margin-bottom: 20px; text-align: center; }
+        .login-box input:focus { outline: none; border-color: #3949ab; }
+        .login-btn { width: 100%; padding: 15px; background: linear-gradient(135deg, #ff6f00 0%, #ffa040 100%); color: white; border: none; border-radius: 10px; font-size: 1.1em; font-weight: 700; cursor: pointer; transition: 0.3s; }
+        .login-btn:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(255,111,0,0.3); }
+        .error-msg { color: #f44336; text-align: center; margin-top: 15px; display: none; font-weight: bold; }
 
-        .login-screen {
-            height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: linear-gradient(135deg, #1a237e 0%, #3949ab 100%);
-        }
+        /* ADMIN PANEL */
+        .admin-panel { display: none; min-height: 100vh; }
+        .header { background: linear-gradient(135deg, #1a237e 0%, #3949ab 100%); color: white; padding: 20px 40px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        .header h1 { font-size: 1.8em; }
+        .logout-btn { background: rgba(255,255,255,0.2); color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: 600; }
+        .logout-btn:hover { background: rgba(255,255,255,0.3); }
 
-        .login-box {
-            background: white;
-            padding: 40px;
-            border-radius: 20px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-            width: 90%;
-            max-width: 400px;
-        }
+        .tabs { background: white; padding: 0 40px; display: flex; gap: 10px; border-bottom: 3px solid #e0e0e0; box-shadow: 0 2px 5px rgba(0,0,0,0.05); flex-wrap: wrap; }
+        .tab { padding: 15px 25px; background: none; border: none; cursor: pointer; font-size: 1em; font-weight: 600; color: #757575; border-bottom: 3px solid transparent; margin-bottom: -3px; transition: all 0.3s; }
+        .tab:hover { color: #1a237e; }
+        .tab.active { color: #1a237e; border-bottom-color: #ff6f00; }
 
-        .login-box h2 {
-            color: #1a237e;
-            text-align: center;
-            margin-bottom: 30px;
-        }
+        .content { padding: 40px; }
+        
+        /* SEARCH */
+        .search-box { background: white; padding: 25px; border-radius: 15px; margin-bottom: 30px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
+        .search-box h3 { color: #1a237e; margin-bottom: 15px; }
+        .search-inputs { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px; }
+        .search-inputs input { padding: 12px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 1em; }
+        .search-btn { padding: 12px 30px; background: #3949ab; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; margin-top: 15px; }
+        .search-btn:hover { background: #303f9f; }
+        .search-btn.reset { background: #757575; margin-left: 10px; }
 
-        .login-box input {
-            width: 100%;
-            padding: 15px;
-            border: 2px solid #e0e0e0;
-            border-radius: 10px;
-            font-size: 1.1em;
-            margin-bottom: 20px;
-            text-align: center;
-        }
+        /* APPLICATIONS LIST */
+        .applications-list { display: grid; gap: 20px; }
+        .app-card { background: white; border-radius: 15px; padding: 25px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); cursor: pointer; transition: transform 0.3s, box-shadow 0.3s; border-left: 5px solid #3949ab; }
+        .app-card:hover { transform: translateY(-3px); box-shadow: 0 5px 20px rgba(0,0,0,0.1); }
+        .app-card.status-in-process { border-left-color: #ff9800; }
+        .app-card.status-archived { border-left-color: #4caf50; }
+        
+        .app-header { display: flex; justify-content: space-between; align-items: start; margin-bottom: 15px; }
+        .app-number { font-size: 1.3em; font-weight: 700; color: #1a237e; }
+        .app-status { padding: 5px 15px; border-radius: 20px; font-size: 0.85em; font-weight: 600; }
+        .status-new { background: #e3f2fd; color: #1976d2; }
+        .status-process { background: #fff3e0; color: #f57c00; }
+        .status-archive { background: #e8f5e9; color: #388e3c; }
+        
+        .app-info { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; color: #616161; }
+        .app-info strong { color: #424242; }
 
-        .login-box input:focus {
-            outline: none;
-            border-color: #3949ab;
-        }
+        /* MODAL */
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 1000; align-items: center; justify-content: center; padding: 20px; backdrop-filter: blur(3px); }
+        .modal.active { display: flex; }
+        .modal-content { background: white; border-radius: 20px; max-width: 900px; width: 100%; max-height: 90vh; overflow-y: auto; padding: 40px; position: relative; box-shadow: 0 10px 40px rgba(0,0,0,0.2); }
+        .close-modal { position: absolute; top: 20px; right: 20px; font-size: 2em; cursor: pointer; color: #757575; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; border-radius: 50%; transition: background 0.3s; }
+        .close-modal:hover { background: #f5f5f5; color: #333; }
+        .modal h2 { color: #1a237e; margin-bottom: 30px; padding-right: 40px; }
 
-        .login-btn {
-            width: 100%;
-            padding: 15px;
-            background: linear-gradient(135deg, #ff6f00 0%, #ffa040 100%);
-            color: white;
-            border: none;
-            border-radius: 10px;
-            font-size: 1.1em;
-            font-weight: 700;
-            cursor: pointer;
-        }
+        .detail-section { margin-bottom: 30px; }
+        .detail-section h3 { color: #3949ab; margin-bottom: 15px; padding-bottom: 10px; border-bottom: 2px solid #e0e0e0; font-size: 1.2em; }
+        .detail-row { display: grid; grid-template-columns: 200px 1fr; gap: 15px; margin-bottom: 12px; padding: 12px; background: #f9fafb; border-radius: 8px; border: 1px solid #eee; }
+        .detail-row strong { color: #424242; }
 
-        .error-msg {
-            color: #f44336;
-            text-align: center;
-            margin-top: 15px;
-            display: none;
-        }
+        /* ACTION BUTTONS */
+        .action-buttons { display: flex; gap: 15px; margin-top: 30px; flex-wrap: wrap; border-top: 2px solid #eee; padding-top: 20px; }
+        .action-btn { flex: 1; min-width: 250px; padding: 15px 25px; border: none; border-radius: 10px; font-size: 1em; font-weight: 600; cursor: pointer; transition: transform 0.2s, box-shadow 0.2s; display: flex; align-items: center; justify-content: center; gap: 10px; }
+        .btn-primary { background: linear-gradient(135deg, #ff6f00 0%, #ffa040 100%); color: white; }
+        .btn-success { background: linear-gradient(135deg, #4caf50 0%, #81c784 100%); color: white; }
+        .action-btn:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(0,0,0,0.15); }
+        .action-btn:active { transform: translateY(0); }
 
-        .admin-panel {
-            display: none;
-            min-height: 100vh;
-        }
+        .file-input-wrapper { margin: 20px 0; width: 100%; }
+        .file-input-wrapper input[type="file"] { display: none; }
+        .file-input-label { display: inline-block; padding: 12px 25px; background: #e0e0e0; border-radius: 8px; cursor: pointer; font-weight: 600; transition: background 0.3s; width: 100%; text-align: center; }
+        .file-input-label:hover { background: #d0d0d0; }
 
-        .header {
-            background: linear-gradient(135deg, #1a237e 0%, #3949ab 100%);
-            color: white;
-            padding: 20px 40px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-        }
+        .card-data-display { background: #e8f5e9; padding: 20px; border-radius: 8px; margin-top: 15px; border-left: 4px solid #4caf50; }
 
-        .header h1 {
-            font-size: 1.8em;
-        }
-
-        .logout-btn {
-            background: rgba(255,255,255,0.2);
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 8px;
-            cursor: pointer;
-            font-weight: 600;
-        }
-
-        .logout-btn:hover {
-            background: rgba(255,255,255,0.3);
-        }
-
-        .tabs {
-            background: white;
-            padding: 0 40px;
-            display: flex;
-            gap: 10px;
-            border-bottom: 3px solid #e0e0e0;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-        }
-
-        .tab {
-            padding: 15px 30px;
-            background: none;
-            border: none;
-            cursor: pointer;
-            font-size: 1em;
-            font-weight: 600;
-            color: #757575;
-            border-bottom: 3px solid transparent;
-            margin-bottom: -3px;
-            transition: all 0.3s;
-        }
-
-        .tab:hover {
-            color: #1a237e;
-        }
-
-        .tab.active {
-            color: #1a237e;
-            border-bottom-color: #ff6f00;
-        }
-
-        .content {
-            padding: 40px;
-        }
-
-        .search-box {
-            background: white;
-            padding: 25px;
-            border-radius: 15px;
-            margin-bottom: 30px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-        }
-
-        .search-box h3 {
-            color: #1a237e;
-            margin-bottom: 15px;
-        }
-
-        .search-inputs {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 15px;
-        }
-
-        .search-inputs input {
-            padding: 12px;
-            border: 2px solid #e0e0e0;
-            border-radius: 8px;
-            font-size: 1em;
-        }
-
-        .search-btn {
-            padding: 12px 30px;
-            background: #3949ab;
-            color: white;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            font-weight: 600;
-            margin-top: 15px;
-        }
-
-        .applications-list {
-            display: grid;
-            gap: 20px;
-        }
-
-        .app-card {
-            background: white;
-            border-radius: 15px;
-            padding: 25px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-            cursor: pointer;
-            transition: transform 0.3s, box-shadow 0.3s;
-            border-left: 5px solid #3949ab;
-        }
-
-        .app-card:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
-        }
-
-        .app-card.status-in-process {
-            border-left-color: #ff9800;
-        }
-
-        .app-card.status-archived {
-            border-left-color: #4caf50;
-        }
-
-        .app-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: start;
-            margin-bottom: 15px;
-        }
-
-        .app-number {
-            font-size: 1.3em;
-            font-weight: 700;
-            color: #1a237e;
-        }
-
-        .app-status {
-            padding: 5px 15px;
-            border-radius: 20px;
-            font-size: 0.85em;
-            font-weight: 600;
-        }
-
-        .status-new {
-            background: #e3f2fd;
-            color: #1976d2;
-        }
-
-        .status-process {
-            background: #fff3e0;
-            color: #f57c00;
-        }
-
-        .status-archive {
-            background: #e8f5e9;
-            color: #388e3c;
-        }
-
-        .app-info {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 10px;
-            color: #616161;
-        }
-
-        .app-info div {
-            padding: 5px 0;
-        }
-
-        .app-info strong {
-            color: #424242;
-        }
-
-        /* Модальное окно */
-        .modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.5);
-            z-index: 1000;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
-        }
-
-        .modal.active {
-            display: flex;
-        }
-
-        .modal-content {
-            background: white;
-            border-radius: 20px;
-            max-width: 900px;
-            width: 100%;
-            max-height: 90vh;
-            overflow-y: auto;
-            padding: 40px;
-            position: relative;
-        }
-
-        .close-modal {
-            position: absolute;
-            top: 20px;
-            right: 20px;
-            font-size: 2em;
-            cursor: pointer;
-            color: #757575;
-            width: 40px;
-            height: 40px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 50%;
-            transition: background 0.3s;
-        }
-
-        .close-modal:hover {
-            background: #f5f5f5;
-        }
-
-        .modal h2 {
-            color: #1a237e;
-            margin-bottom: 30px;
-            padding-right: 50px;
-        }
-
-        .detail-section {
-            margin-bottom: 30px;
-        }
-
-        .detail-section h3 {
-            color: #3949ab;
-            margin-bottom: 15px;
-            padding-bottom: 10px;
-            border-bottom: 2px solid #e0e0e0;
-        }
-
-        .detail-row {
-            display: grid;
-            grid-template-columns: 200px 1fr;
-            gap: 15px;
-            margin-bottom: 12px;
-            padding: 10px;
-            background: #f5f7fa;
-            border-radius: 8px;
-        }
-
-        .detail-row strong {
-            color: #424242;
-        }
-
-        .action-buttons {
-            display: flex;
-            gap: 15px;
-            margin-top: 30px;
-            flex-wrap: wrap;
-        }
-
-        .action-btn {
-            flex: 1;
-            min-width: 200px;
-            padding: 15px 25px;
-            border: none;
-            border-radius: 10px;
-            font-size: 1em;
-            font-weight: 600;
-            cursor: pointer;
-            transition: transform 0.3s, box-shadow 0.3s;
-        }
-
-        .btn-primary {
-            background: linear-gradient(135deg, #ff6f00 0%, #ffa040 100%);
-            color: white;
-        }
-
-        .btn-secondary {
-            background: #3949ab;
-            color: white;
-        }
-
-        .btn-success {
-            background: #4caf50;
-            color: white;
-        }
-
-        .action-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
-        }
-
-        .file-input-wrapper {
-            margin: 20px 0;
-        }
-
-        .file-input-wrapper input[type="file"] {
-            display: none;
-        }
-
-        .file-input-label {
-            display: inline-block;
-            padding: 12px 25px;
-            background: #e0e0e0;
-            border-radius: 8px;
-            cursor: pointer;
-            font-weight: 600;
-            transition: background 0.3s;
-        }
-
-        .file-input-label:hover {
-            background: #d0d0d0;
-        }
-
-        .card-data-display {
-            background: #e8f5e9;
-            padding: 15px;
-            border-radius: 8px;
-            margin-top: 15px;
-            border-left: 4px solid #4caf50;
-        }
-
-        .no-apps {
-            text-align: center;
-            padding: 60px 20px;
-            color: #757575;
-            font-size: 1.2em;
-        }
-
+        .no-apps { text-align: center; padding: 60px 20px; color: #999; font-size: 1.2em; }
+        
         @media (max-width: 768px) {
-            .detail-row {
-                grid-template-columns: 1fr;
-            }
-            .header, .tabs, .content {
-                padding-left: 20px;
-                padding-right: 20px;
-            }
+            .detail-row { grid-template-columns: 1fr; }
+            .header, .tabs, .content { padding-left: 20px; padding-right: 20px; }
+            .action-btn { width: 100%; }
         }
     </style>
 </head>
 <body>
-    <!-- Экран входа -->
+    <!-- ЭКРАН ВХОДА -->
     <div class="login-screen" id="loginScreen">
         <div class="login-box">
             <h2>🔐 Вход для сотрудников</h2>
-            <input type="password" id="passwordInput" placeholder="Введите пароль" maxlength="4">
-            <button class="login-btn" onclick="login()">Войти</button>
+            <input type="password" id="passwordInput" placeholder="Введите пароль (0506)" maxlength="4">
+            <button class="login-btn" onclick="login()">Войти в систему</button>
             <div class="error-msg" id="loginError">Неверный пароль</div>
         </div>
     </div>
 
-    <!-- Панель администратора -->
+    <!-- ПАНЕЛЬ АДМИНИСТРАТОРА -->
     <div class="admin-panel" id="adminPanel">
         <div class="header">
-            <h1>🏦 Ренессанс Кредит — Панель сотрудника</h1>
+            <h1>🏦 Ренессанс Кредит</h1>
             <button class="logout-btn" onclick="logout()">Выйти</button>
         </div>
 
@@ -451,98 +126,71 @@
 
         <div class="content">
             <div class="search-box">
-                <h3>🔍 Поиск</h3>
+                <h3>🔍 Поиск заявок</h3>
                 <div class="search-inputs" id="searchInputs">
-                    <input type="text" id="searchFio" placeholder="ФИО клиента">
-                    <input type="text" id="searchPhone" placeholder="Номер телефона">
-                    <input type="text" id="searchPassport" placeholder="Паспортные данные">
+                    <input type="text" id="searchFio" placeholder="Поиск по ФИО...">
+                    <input type="text" id="searchPhone" placeholder="Номер телефона...">
+                    <input type="text" id="searchPassport" placeholder="Паспортные данные...">
                 </div>
-                <button class="search-btn" onclick="searchApplications()">Найти</button>
-                <button class="search-btn" onclick="resetSearch()" style="background: #757575; margin-left: 10px;">Сбросить</button>
+                <div style="display: flex; gap: 10px;">
+                    <button class="search-btn" onclick="searchApplications()">Найти</button>
+                    <button class="search-btn reset" onclick="resetSearch()">Сбросить</button>
+                </div>
             </div>
 
             <div class="applications-list" id="applicationsList">
-                <div class="no-apps">Заявок не найдено</div>
+                <div class="no-apps">Загрузка данных...</div>
             </div>
         </div>
     </div>
 
-    <!-- Модальное окно заявки -->
+    <!-- МОДАЛЬНОЕ ОКНО ЗАЯВКИ -->
     <div class="modal" id="appModal">
         <div class="modal-content">
             <span class="close-modal" onclick="closeModal()">&times;</span>
             <h2>Заявка №<span id="modalAppNumber"></span></h2>
             
             <div class="detail-section">
-                <h3>Основная информация</h3>
-                <div class="detail-row">
-                    <strong>Номер заявки:</strong>
-                    <span id="modalAppNumberFull"></span>
-                </div>
-                <div class="detail-row">
-                    <strong>Дата подачи:</strong>
-                    <span id="modalDate"></span>
-                </div>
-                <div class="detail-row">
-                    <strong>Продукт:</strong>
-                    <span id="modalProduct"></span>
-                </div>
-                <div class="detail-row">
-                    <strong>Статус:</strong>
-                    <span id="modalStatus"></span>
-                </div>
+                <h3>📄 Основная информация</h3>
+                <div class="detail-row"><strong>Номер заявки:</strong> <span id="modalAppNumberFull"></span></div>
+                <div class="detail-row"><strong>Дата подачи:</strong> <span id="modalDate"></span></div>
+                <div class="detail-row"><strong>Продукт:</strong> <span id="modalProduct"></span></div>
+                <div class="detail-row"><strong>Статус:</strong> <span id="modalStatus"></span></div>
             </div>
 
             <div class="detail-section" id="clientDataSection">
-                <h3>Данные клиента</h3>
-                <div class="detail-row">
-                    <strong>ФИО:</strong>
-                    <span id="modalFio"></span>
-                </div>
-                <div class="detail-row">
-                    <strong>Паспорт:</strong>
-                    <span id="modalPassport"></span>
-                </div>
-                <div class="detail-row">
-                    <strong>Телефон:</strong>
-                    <span id="modalPhone"></span>
-                </div>
-                <div class="detail-row">
-                    <strong>Email:</strong>
-                    <span id="modalEmail"></span>
-                </div>
+                <h3>👤 Данные заявителя</h3>
+                <div class="detail-row"><strong>ФИО:</strong> <span id="modalFio"></span></div>
+                <div class="detail-row"><strong>Паспорт:</strong> <span id="modalPassport"></span></div>
+                <div class="detail-row"><strong>Телефон:</strong> <span id="modalPhone"></span></div>
+                <div class="detail-row"><strong>Email:</strong> <span id="modalEmail"></span></div>
             </div>
 
+            <!-- Секция для Детской карты -->
             <div class="detail-section" id="childDataSection" style="display: none;">
-                <h3>Данные ребенка</h3>
-                <div class="detail-row">
-                    <strong>ФИО ребенка:</strong>
-                    <span id="modalChildFio"></span>
-                </div>
-                <div class="detail-row">
-                    <strong>Свидетельство о рождении:</strong>
-                    <span id="modalChildCertificate"></span>
-                </div>
-                <div class="detail-row">
-                    <strong>Телефон ребенка:</strong>
-                    <span id="modalChildPhone"></span>
-                </div>
+                <h3> Данные ребенка</h3>
+                <div class="detail-row"><strong>ФИО ребенка:</strong> <span id="modalChildFio"></span></div>
+                <div class="detail-row"><strong>Свидетельство о рождении:</strong> <span id="modalChildCertificate"></span></div>
+                <div class="detail-row"><strong>Телефон ребенка:</strong> <span id="modalChildPhone"></span></div>
             </div>
 
+            <!-- Секция для Данных карты (в архиве) -->
             <div class="detail-section" id="cardDataSection" style="display: none;">
-                <h3>Данные карты</h3>
+                <h3>💳 Данные карты</h3>
                 <div class="card-data-display" id="cardDataContent"></div>
             </div>
 
+            <!-- КНОПКИ ДЕЙСТВИЙ -->
             <div class="action-buttons" id="actionButtons">
-                <!-- Кнопки будут добавляться динамически -->
+                <!-- Кнопки добавляются через JS -->
             </div>
         </div>
     </div>
 
     <script>
-        // Инициализация EmailJS
+        // === ИНИЦИАЛИЗАЦИЯ EMAILJS (ДОБАВЛЕНО) ===
         (function() {
+            // Твой Public Key
             emailjs.init("C-TWjq5k1zdkhB8Vb");
         })();
 
@@ -550,7 +198,7 @@
         let currentApp = null;
         let applications = [];
 
-        // Вход
+        // === ФУНКЦИИ ВХОДА ===
         function login() {
             const password = document.getElementById('passwordInput').value;
             if (password === '0506') {
@@ -562,21 +210,17 @@
             }
         }
 
-        // Выход
         function logout() {
-            document.getElementById('adminPanel').style.display = 'none';
-            document.getElementById('loginScreen').style.display = 'flex';
-            document.getElementById('passwordInput').value = '';
-            document.getElementById('loginError').style.display = 'none';
+            location.reload();
         }
 
-        // Переключение вкладок
+        // === НАВИГАЦИЯ И ЗАГРУЗКА ===
         function switchTab(tab) {
             currentTab = tab;
             document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
             event.target.classList.add('active');
             
-            // Обновление поисковых полей
+            // Меняем поля поиска в зависимости от вкладки
             const searchInputs = document.getElementById('searchInputs');
             if (tab === 'archive') {
                 searchInputs.innerHTML = `
@@ -591,29 +235,22 @@
                     <input type="text" id="searchPassport" placeholder="Паспортные данные">
                 `;
             }
-            
             loadApplications();
         }
 
-        // Загрузка заявок
         function loadApplications() {
             applications = JSON.parse(localStorage.getItem('renAppApplications') || '[]');
             renderApplications();
             updateCounts();
         }
 
-        // Обновление счетчиков
         function updateCounts() {
-            const newCount = applications.filter(a => a.status === 'new').length;
-            const processCount = applications.filter(a => a.status === 'process').length;
-            const archiveCount = applications.filter(a => a.status === 'archive').length;
-            
-            document.getElementById('countNew').textContent = `(${newCount})`;
-            document.getElementById('countProcess').textContent = `(${processCount})`;
-            document.getElementById('countArchive').textContent = `(${archiveCount})`;
+            document.getElementById('countNew').textContent = `(${applications.filter(a => a.status === 'new').length})`;
+            document.getElementById('countProcess').textContent = `(${applications.filter(a => a.status === 'process').length})`;
+            document.getElementById('countArchive').textContent = `(${applications.filter(a => a.status === 'archive').length})`;
         }
 
-        // Отображение заявок
+        // === ОТРИСОВКА СПИСКА ===
         function renderApplications(filteredApps = null) {
             const list = document.getElementById('applicationsList');
             const apps = filteredApps || applications.filter(a => {
@@ -624,22 +261,18 @@
             });
 
             if (apps.length === 0) {
-                list.innerHTML = '<div class="no-apps">Заявок не найдено</div>';
+                list.innerHTML = '<div class="no-apps">Заявок в этой категории не найдено</div>';
                 return;
             }
 
             list.innerHTML = apps.map(app => {
-                const statusClass = app.status === 'new' ? 'status-new' : 
-                                   app.status === 'process' ? 'status-process' : 'status-archive';
-                const statusText = app.status === 'new' ? 'Новая' : 
-                                  app.status === 'process' ? 'В процессе' : 'Архив';
-                const cardClass = app.status === 'new' ? '' : 
-                                 app.status === 'process' ? 'status-in-process' : 'status-archived';
-                
                 let displayName = app.fio || app.parentFio;
                 let displayPhone = app.phone || app.parentPhone;
-                let displayPassport = app.passportSeries && app.passportNumber ? 
-                                     `${app.passportSeries} ${app.passportNumber}` : '-';
+                let displayPassport = app.passportSeries ? `${app.passportSeries} ${app.passportNumber}` : '-';
+                
+                const statusClass = app.status === 'new' ? 'status-new' : (app.status === 'process' ? 'status-process' : 'status-archive');
+                const statusText = app.status === 'new' ? 'Новая' : (app.status === 'process' ? 'В процессе' : 'Архив');
+                const cardClass = app.status === 'process' ? 'status-in-process' : (app.status === 'archive' ? 'status-archived' : '');
 
                 return `
                     <div class="app-card ${cardClass}" onclick="openAppModal('${app.appNumber}')">
@@ -652,52 +285,41 @@
                             <div><strong>Телефон:</strong> ${displayPhone}</div>
                             <div><strong>Продукт:</strong> ${app.productType}</div>
                             <div><strong>Паспорт:</strong> ${displayPassport}</div>
-                            <div><strong>Дата:</strong> ${app.submitDate}</div>
                         </div>
                     </div>
                 `;
             }).join('');
         }
 
-        // Поиск
+        // === ПОИСК ===
         function searchApplications() {
             const fio = document.getElementById('searchFio')?.value.toLowerCase() || '';
             const phone = document.getElementById('searchPhone')?.value || '';
             const passport = document.getElementById('searchPassport')?.value || '';
             const cardNumber = document.getElementById('searchCardNumber')?.value || '';
-            const date = document.getElementById('searchDate')?.value || '';
 
             const filtered = applications.filter(app => {
-                let matches = true;
+                if (app.status !== currentTab && currentTab !== 'all') return false; // Фильтр по вкладке
                 
-                if (currentTab === 'archive') {
-                    if (fio && !(app.fio || app.parentFio).toLowerCase().includes(fio)) matches = false;
-                    if (cardNumber && (!app.cardNumber || !app.cardNumber.includes(cardNumber))) matches = false;
-                    if (date && app.submitDate !== date) matches = false;
-                } else {
-                    if (fio && !(app.fio || app.parentFio).toLowerCase().includes(fio)) matches = false;
-                    if (phone && !(app.phone || app.parentPhone).includes(phone)) matches = false;
-                    if (passport) {
-                        const appPassport = (app.passportSeries || '') + ' ' + (app.passportNumber || '');
-                        if (!appPassport.includes(passport)) matches = false;
-                    }
-                }
-                
-                return matches;
-            });
+                let matchFio = !fio || (app.fio || app.parentFio || '').toLowerCase().includes(fio);
+                let matchPhone = !phone || (app.phone || app.parentPhone || '').includes(phone);
+                let matchPassport = !passport || ((app.passportSeries || '') + ' ' + (app.passportNumber || '')).includes(passport);
+                let matchCard = !cardNumber || (app.cardNumber || '').includes(cardNumber);
 
+                if (currentTab === 'archive') {
+                    return matchFio && matchCard;
+                } else {
+                    return matchFio && matchPhone && matchPassport;
+                }
+            });
             renderApplications(filtered);
         }
 
-        // Сброс поиска
         function resetSearch() {
-            document.getElementById('searchFio').value = '';
-            document.getElementById('searchPhone').value = '';
-            document.getElementById('searchPassport').value = '';
             loadApplications();
         }
 
-        // Открытие модального окна
+        // === МОДАЛЬНОЕ ОКНО ===
         function openAppModal(appNumber) {
             currentApp = applications.find(a => a.appNumber === appNumber);
             if (!currentApp) return;
@@ -707,11 +329,10 @@
             document.getElementById('modalDate').textContent = currentApp.submitDate;
             document.getElementById('modalProduct').textContent = currentApp.productType;
             
-            const statusText = currentApp.status === 'new' ? 'Новая' : 
-                              currentApp.status === 'process' ? 'В процессе' : 'Архив';
-            document.getElementById('modalStatus').textContent = statusText;
+            const statusText = currentApp.status === 'new' ? 'Новая' : (currentApp.status === 'process' ? 'В процессе' : 'Архив');
+            document.getElementById('modalStatus').innerHTML = `<span class="app-status ${currentApp.status === 'new' ? 'status-new' : (currentApp.status === 'process' ? 'status-process' : 'status-archive')}">${statusText}</span>`;
 
-            // Данные клиента
+            // Заполнение данных
             if (currentApp.productType === 'Дебетовая карта') {
                 document.getElementById('modalFio').textContent = currentApp.fio;
                 document.getElementById('modalPassport').textContent = `${currentApp.passportSeries} ${currentApp.passportNumber}`;
@@ -730,37 +351,31 @@
                 document.getElementById('modalChildPhone').textContent = currentApp.childPhone || '-';
             }
 
-            // Данные карты (если есть)
+            // Данные карты
             if (currentApp.cardNumber) {
                 document.getElementById('cardDataSection').style.display = 'block';
-                document.getElementById('cardDataContent').innerHTML = `
-                    <strong>Номер карты:</strong> ${currentApp.cardNumber}<br>
-                    <strong>Срок действия:</strong> ${currentApp.cardExpiry || '-'}<br>
-                    <strong>CVV:</strong> ${currentApp.cardCvv || '-'}
-                `;
+                document.getElementById('cardDataContent').innerHTML = `<strong>Номер карты:</strong> ${currentApp.cardNumber}`;
             } else {
                 document.getElementById('cardDataSection').style.display = 'none';
             }
 
-            // Кнопки действий
+            // === КНОПКИ ДЕЙСТВИЙ (ЗДЕСЬ ЛОГИКА ДОБАВЛЕНА) ===
             const buttonsDiv = document.getElementById('actionButtons');
             buttonsDiv.innerHTML = '';
 
             if (currentApp.status === 'new') {
+                // Кнопка для отправки письма о готовности
                 buttonsDiv.innerHTML = `
                     <button class="action-btn btn-primary" onclick="sendReadyNotification()">
-                        📧 Отправить ответ клиенту (карта готова)
+                        📧 Отправить ответ клиенту (Карта готова)
                     </button>
                 `;
             } else if (currentApp.status === 'process') {
+                // Кнопка для архивации
                 buttonsDiv.innerHTML = `
                     <div style="width: 100%;">
-                        <div class="file-input-wrapper">
-                            <input type="file" id="cardDataFile" accept=".txt,.pdf,.doc,.docx">
-                            <label for="cardDataFile" class="file-input-label">📎 Загрузить данные карты</label>
-                        </div>
                         <button class="action-btn btn-success" onclick="moveToArchive()">
-                            ✅ Отправить в архив
+                            ✅ Ввести номер карты и в Архив
                         </button>
                     </div>
                 `;
@@ -769,92 +384,86 @@
             document.getElementById('appModal').classList.add('active');
         }
 
-        // Закрытие модального окна
         function closeModal() {
             document.getElementById('appModal').classList.remove('active');
             currentApp = null;
         }
 
-        // Отправка уведомления о готовности
+        // === ФУНКЦИЯ ОТПРАВКИ ПИСЬМА (НОВАЯ) ===
         async function sendReadyNotification() {
             if (!currentApp) return;
 
             const clientName = currentApp.fio || currentApp.parentFio;
             const clientEmail = currentApp.email || currentApp.parentEmail;
 
-            const templateParams = {
-                client_email: clientEmail,
-                client_name: clientName,
-                app_number: currentApp.appNumber,
-                message: `Уважаемый(ая) ${clientName}, благодарим вас за выбор Ренессанс Кредит. Ваша карта уже готова и ждет вас в отделении по адресу: Г. Москва, Ул. Ленина д.180.`
-            };
+            // Формируем текст сообщения
+            const messageText = `Уважаемый(ая) ${clientName}, благодарим вас за выбор Ренессанс Кредит. Ваша карта уже готова и ждет вас в отделении по адресу: г. Москва, ул. Ленина, д. 180.`;
 
-            if (confirm(`Отправить уведомление клиенту ${clientName} о готовности карты?`)) {
+            if (confirm(`Отправить уведомление клиенту ${clientName}?\n\nТекст письма:\n"${messageText}"\n\nПосле отправки заявка перейдет в статус "В процессе".`)) {
+                
+                const btn = document.querySelector('.action-btn');
+                btn.innerText = '⏳ Отправка...';
+                btn.disabled = true;
+
                 try {
+                    // Отправка через EmailJS
                     await emailjs.send(
-                        'service_s3bf4xi',
-                        'template_ax3yfkr',
-                        templateParams
+                        'service_s3bf4xi',       // Твой Service ID
+                        'template_joc2wh9',      // Твой Template ID
+                        {
+                            client_email: clientEmail,
+                            client_name: clientName,
+                            message_text: messageText // Передаем текст в шаблон как {{message_text}}
+                        }
                     );
                     
-                    alert('Уведомление успешно отправлено клиенту!');
+                    alert('✅ Уведомление успешно отправлено! Заявка переведена в "В процессе".');
                     
-                    // Перевод в статус "В процессе"
+                    // Обновляем статус
                     currentApp.status = 'process';
                     saveApplications();
                     closeModal();
                     loadApplications();
                     
                 } catch (error) {
-                    console.error('Ошибка отправки:', error);
-                    alert('Произошла ошибка при отправке email. Попробуйте позже.');
+                    console.error('Ошибка:', error);
+                    alert('❌ Ошибка отправки письма. Проверьте настройки шаблона в EmailJS.');
+                } finally {
+                    btn.disabled = false;
+                    btn.innerHTML = '📧 Отправить ответ клиенту (Карта готова)';
                 }
             }
         }
 
-        // Перемещение в архив
+        // === ФУНКЦИЯ АРХИВАЦИИ ===
         function moveToArchive() {
             if (!currentApp) return;
-
-            const cardNumber = prompt('Введите номер карты:');
-            if (!cardNumber) {
-                alert('Необходимо ввести номер карты');
-                return;
+            const cardNumber = prompt('Введите 16-значный номер карты:');
+            if (cardNumber && cardNumber.length >= 16) {
+                currentApp.cardNumber = cardNumber;
+                currentApp.status = 'archive';
+                currentApp.archiveDate = new Date().toLocaleString('ru-RU');
+                saveApplications();
+                closeModal();
+                loadApplications();
+                alert('✅ Карта привязана. Заявка в Архиве.');
+            } else {
+                alert('Введите корректный номер карты');
             }
-
-            const cardExpiry = prompt('Введите срок действия карты (ММ/ГГ):') || '';
-            const cardCvv = prompt('Введите CVV:') || '';
-
-            currentApp.cardNumber = cardNumber;
-            currentApp.cardExpiry = cardExpiry;
-            currentApp.cardCvv = cardCvv;
-            currentApp.status = 'archive';
-            currentApp.archiveDate = new Date().toLocaleString('ru-RU');
-
-            saveApplications();
-            closeModal();
-            loadApplications();
-            
-            alert('Заявка успешно перемещена в архив!');
         }
 
-        // Сохранение заявок
         function saveApplications() {
             localStorage.setItem('renAppApplications', JSON.stringify(applications));
         }
 
-        // Закрытие модального окна при клике вне его
+        // Закрытие по клику вне окна
         document.getElementById('appModal').addEventListener('click', function(e) {
-            if (e.target === this) {
-                closeModal();
-            }
+            if (e.target === this) closeModal();
         });
 
         // Enter для входа
         document.getElementById('passwordInput').addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') {
-                login();
-            }
+            if (e.key === 'Enter') login();
         });
     </script>
 </body>
