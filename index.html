@@ -3,951 +3,414 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="Автоматизированная система регистратуры медицинского учреждения">
-  <meta name="theme-color" content="#0d6efd">
-  <title>🏥 Регистратура больницы | v2.0 Production</title>
-  <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+  <title>🏥 Регистратура | Рабочая версия</title>
+  <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
   <style>
-    /* === CSS VARIABLES & RESET === */
     :root {
-      --primary: #0d6efd; --primary-hover: #0b5ed7; --primary-active: #0a58ca;
-      --secondary: #6c757d; --success: #198754; --danger: #dc3545;
+      --primary: #0d6efd; --primary-dark: #0b5ed7; --success: #198754; --danger: #dc3545;
       --warning: #ffc107; --info: #0dcaf0; --light: #f8f9fa; --dark: #212529;
-      --bg-body: #f4f6f8; --bg-card: #ffffff; --bg-input: #ffffff;
-      --border: #dee2e6; --border-focus: rgba(13, 110, 253, 0.25);
-      --text-main: #212529; --text-muted: #6c757d; --text-light: #f8f9fa;
-      --shadow-sm: 0 0.125rem 0.25rem rgba(0,0,0,0.075);
-      --shadow-md: 0 0.5rem 1rem rgba(0,0,0,0.15);
-      --shadow-lg: 0 1rem 3rem rgba(0,0,0,0.175);
-      --radius-sm: 0.25rem; --radius-md: 0.375rem; --radius-lg: 0.5rem;
-      --font-sans: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-      --font-mono: "SF Mono", Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
-      --transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-      --header-height: 4.5rem; --sidebar-width: 260px;
+      --bg: #f4f6f8; --card: #fff; --border: #dee2e6; --text: #212529; --muted: #6c757d;
+      --radius: 0.5rem; --shadow: 0 0.5rem 1rem rgba(0,0,0,0.1); --trans: 0.2s ease;
     }
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    html { font-size: 16px; scroll-behavior: smooth; }
-    body { font-family: var(--font-sans); background: var(--bg-body); color: var(--text-main); line-height: 1.6; min-height: 100vh; display: flex; flex-direction: column; }
-    a { color: var(--primary); text-decoration: none; transition: var(--transition); }
-    a:hover { text-decoration: underline; color: var(--primary-hover); }
-    img, svg { max-width: 100%; height: auto; display: block; }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; background: var(--bg); color: var(--text); line-height: 1.5; min-height: 100vh; display: flex; flex-direction: column; }
+    a { color: var(--primary); text-decoration: none; }
     button, input, select, textarea { font-family: inherit; font-size: 1rem; }
-
-    /* === LAYOUT & GRID === */
-    .app-header { background: var(--primary); color: var(--text-light); height: var(--header-height); display: flex; align-items: center; padding: 0 1.5rem; box-shadow: var(--shadow-md); position: sticky; top: 0; z-index: 1024; }
-    .brand { font-size: 1.25rem; font-weight: 700; display: flex; align-items: center; gap: 0.5rem; letter-spacing: -0.02em; }
-    .brand svg { width: 24px; height: 24px; fill: currentColor; }
-    .nav-main { margin-left: auto; display: flex; gap: 0.25rem; }
-    .nav-btn { background: transparent; border: 1px solid transparent; color: rgba(255,255,255,0.85); padding: 0.5rem 0.875rem; border-radius: var(--radius-md); cursor: pointer; transition: var(--transition); font-weight: 500; position: relative; }
-    .nav-btn:hover { background: rgba(255,255,255,0.1); color: #fff; }
-    .nav-btn.active { background: rgba(255,255,255,0.15); border-color: rgba(255,255,255,0.2); color: #fff; }
-    .nav-btn.active::after { content: ''; position: absolute; bottom: -2px; left: 50%; transform: translateX(-50%); width: 60%; height: 2px; background: #fff; border-radius: 2px; }
-    .container { width: 100%; max-width: 1280px; margin: 0 auto; padding: 1.5rem; flex: 1; }
-    .grid-2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem; }
-    .grid-3 { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1rem; }
-    .card { background: var(--bg-card); border-radius: var(--radius-lg); box-shadow: var(--shadow-sm); padding: 1.5rem; border: 1px solid var(--border); transition: var(--transition); }
-    .card:hover { box-shadow: var(--shadow-md); }
+    
+    .header { background: var(--primary); color: #fff; padding: 1rem 1.5rem; display: flex; align-items: center; gap: 1rem; box-shadow: var(--shadow); position: sticky; top: 0; z-index: 100; }
+    .brand { font-weight: 700; font-size: 1.25rem; display: flex; align-items: center; gap: 0.5rem; }
+    .nav { margin-left: auto; display: flex; gap: 0.5rem; }
+    .nav-btn { background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.2); color: #fff; padding: 0.5rem 1rem; border-radius: var(--radius); cursor: pointer; transition: var(--trans); font-weight: 500; }
+    .nav-btn:hover, .nav-btn.active { background: #fff; color: var(--primary); }
+    
+    .container { max-width: 1200px; margin: 0 auto; padding: 1.5rem; flex: 1; width: 100%; }
+    .card { background: var(--card); border-radius: var(--radius); box-shadow: var(--shadow); padding: 1.5rem; margin-bottom: 1.5rem; border: 1px solid var(--border); }
     .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; padding-bottom: 0.75rem; border-bottom: 1px solid var(--border); }
-    .card-title { font-size: 1.25rem; font-weight: 600; margin: 0; }
-    .card-body { flex: 1; }
-    .card-footer { margin-top: 1.25rem; padding-top: 1rem; border-top: 1px solid var(--border); display: flex; gap: 0.75rem; justify-content: flex-end; }
-
-    /* === FORMS & INPUTS === */
-    .form-group { margin-bottom: 1.25rem; }
-    .form-label { display: block; margin-bottom: 0.375rem; font-weight: 500; color: #495057; font-size: 0.875rem; }
-    .form-control { width: 100%; padding: 0.625rem 0.75rem; background: var(--bg-input); border: 1px solid var(--border); border-radius: var(--radius-md); transition: var(--transition); }
-    .form-control:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 0.2rem var(--border-focus); }
-    .form-control.is-invalid { border-color: var(--danger); background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='none' stroke='%23dc3545' viewBox='0 0 12 12'%3e%3ccircle cx='6' cy='6' r='4.5'/%3e%3cpath stroke-width='1.5' d='M5.5 6.5h.01m-.5 2h.01'/%3e%3c/svg%3e"); background-repeat: no-repeat; background-position: right 0.75rem center; background-size: 12px 12px; }
+    .card-title { font-size: 1.25rem; font-weight: 600; }
+    
+    .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 1rem; }
+    .form-group { margin-bottom: 1rem; }
+    .form-label { display: block; margin-bottom: 0.375rem; font-weight: 500; color: #495057; font-size: 0.9rem; }
+    .form-control { width: 100%; padding: 0.6rem 0.75rem; border: 1px solid var(--border); border-radius: var(--radius); transition: var(--trans); background: #fff; }
+    .form-control:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 0.2rem rgba(13,110,253,0.25); }
+    .form-control.is-invalid { border-color: var(--danger); background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='none' stroke='%23dc3545' viewBox='0 0 12 12'%3e%3ccircle cx='6' cy='6' r='4.5'/%3e%3cpath stroke-width='1.5' d='M5.5 6.5h.01m-.5 2h.01'/%3e%3c/svg%3e"); background-repeat: no-repeat; background-position: right 0.75rem center; background-size: 12px; }
     .invalid-feedback { color: var(--danger); font-size: 0.8rem; margin-top: 0.25rem; display: none; }
-    .form-control.is-invalid ~ .invalid-feedback { display: block; }
-    .form-select { appearance: none; background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23343a40' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M2 5l6 6 6-6'/%3e%3c/svg%3e"); background-repeat: no-repeat; background-position: right 0.75rem center; background-size: 12px 12px; }
-    .form-check { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem; }
-    .form-check-input { margin: 0; }
-
-    /* === BUTTONS === */
-    .btn { display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem; padding: 0.625rem 1rem; border: 1px solid transparent; border-radius: var(--radius-md); font-weight: 500; cursor: pointer; transition: var(--transition); background: transparent; }
+    .form-control.is-invalid + .invalid-feedback { display: block; }
+    
+    .btn { display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem; padding: 0.6rem 1rem; border: 1px solid transparent; border-radius: var(--radius); cursor: pointer; transition: var(--trans); font-weight: 500; background: transparent; }
     .btn:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
-    .btn:disabled { opacity: 0.65; cursor: not-allowed; pointer-events: none; }
-    .btn-primary { background: var(--primary); color: #fff; } .btn-primary:hover:not(:disabled) { background: var(--primary-hover); }
+    .btn:disabled { opacity: 0.65; cursor: not-allowed; }
+    .btn-primary { background: var(--primary); color: #fff; } .btn-primary:hover:not(:disabled) { background: var(--primary-dark); }
     .btn-success { background: var(--success); color: #fff; } .btn-success:hover:not(:disabled) { background: #157347; }
     .btn-danger { background: var(--danger); color: #fff; } .btn-danger:hover:not(:disabled) { background: #bb2d3b; }
-    .btn-warning { background: var(--warning); color: #000; } .btn-warning:hover:not(:disabled) { background: #e0a800; }
-    .btn-outline { border-color: var(--border); color: var(--text-main); background: #fff; } .btn-outline:hover:not(:disabled) { background: #e9ecef; border-color: #c8c7cc; }
-    .btn-sm { padding: 0.375rem 0.75rem; font-size: 0.875rem; border-radius: var(--radius-sm); }
-    .btn-lg { padding: 0.75rem 1.5rem; font-size: 1.1rem; }
+    .btn-outline { border-color: var(--border); color: var(--text); background: #fff; } .btn-outline:hover:not(:disabled) { background: #e9ecef; }
+    .btn-sm { padding: 0.35rem 0.65rem; font-size: 0.85rem; }
     .btn-block { width: 100%; }
-    .btn-icon { padding: 0.5rem; font-size: 1rem; width: 36px; height: 36px; }
-
-    /* === TABLES === */
-    .table-responsive { overflow-x: auto; border: 1px solid var(--border); border-radius: var(--radius-md); background: #fff; }
-    .table { width: 100%; border-collapse: collapse; font-size: 0.95rem; }
-    .table th, .table td { padding: 0.875rem 1rem; text-align: left; border-bottom: 1px solid var(--border); vertical-align: middle; }
-    .table th { background: #f8f9fa; font-weight: 600; color: #495057; position: sticky; top: 0; z-index: 10; }
-    .table tbody tr { transition: var(--transition); }
-    .table tbody tr:hover { background: #f1f3f5; }
-    .table-actions { display: flex; gap: 0.375rem; }
-
-    /* === BADGES & UTILS === */
-    .badge { display: inline-flex; align-items: center; padding: 0.25rem 0.6rem; font-size: 0.75rem; font-weight: 600; line-height: 1; border-radius: 50rem; background: #e9ecef; color: #495057; }
+    
+    .table-wrap { overflow-x: auto; border: 1px solid var(--border); border-radius: var(--radius); background: #fff; }
+    table { width: 100%; border-collapse: collapse; font-size: 0.95rem; }
+    th, td { padding: 0.8rem; text-align: left; border-bottom: 1px solid var(--border); }
+    th { background: #f8f9fa; font-weight: 600; color: #495057; position: sticky; top: 0; }
+    tr:hover { background: #f1f3f5; }
+    .actions { display: flex; gap: 0.4rem; }
+    
+    .badge { padding: 0.25rem 0.5rem; font-size: 0.75rem; font-weight: 600; border-radius: 50rem; background: #e9ecef; color: #495057; }
     .badge-scheduled { background: #cff4fc; color: #055160; }
     .badge-completed { background: #d1e7dd; color: #0f5132; }
     .badge-cancelled { background: #f8d7da; color: #842029; }
-    .badge-no-show { background: #fff3cd; color: #664d03; }
-    .hidden { display: none !important; }
-    .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); border: 0; }
-    .text-center { text-align: center; } .text-right { text-align: right; }
-    .mt-2 { margin-top: 0.5rem; } .mt-3 { margin-top: 1rem; } .mb-3 { margin-bottom: 1rem; }
-    .d-flex { display: flex; } .align-center { align-items: center; } .justify-between { justify-content: space-between; } .gap-2 { gap: 0.5rem; } .gap-3 { gap: 1rem; }
-    .w-100 { width: 100%; } .fw-bold { font-weight: 600; } .fs-sm { font-size: 0.875rem; }
-    .spinner { width: 1.25rem; height: 1.25rem; border: 2px solid rgba(255,255,255,0.3); border-top-color: #fff; border-radius: 50%; animation: spin 0.8s linear infinite; }
-    @keyframes spin { to { transform: rotate(360deg); } }
-    .empty-state { padding: 3rem 1rem; text-align: center; color: var(--text-muted); }
-    .empty-state svg { width: 48px; height: 48px; margin: 0 auto 1rem; opacity: 0.4; }
-
-    /* === ALERTS & TOASTS === */
-    .alert { position: relative; padding: 1rem; border-radius: var(--radius-md); margin-bottom: 1rem; border: 1px solid transparent; }
-    .alert-success { background: #d1e7dd; color: #0f5132; border-color: #badbcc; }
-    .alert-danger { background: #f8d7da; color: #842029; border-color: #f5c2c7; }
-    .alert-warning { background: #fff3cd; color: #664d03; border-color: #ffecb5; }
-    .alert-close { position: absolute; top: 0.5rem; right: 0.75rem; background: transparent; border: none; font-size: 1.2rem; cursor: pointer; opacity: 0.7; }
-    .alert-close:hover { opacity: 1; }
-    .toast-container { position: fixed; top: 1rem; right: 1rem; z-index: 9999; display: flex; flex-direction: column; gap: 0.5rem; pointer-events: none; }
-    .toast { background: #fff; border-left: 4px solid var(--primary); padding: 1rem; border-radius: var(--radius-md); box-shadow: var(--shadow-lg); min-width: 300px; max-width: 380px; pointer-events: auto; animation: slideIn 0.3s ease; }
-    .toast.toast-success { border-left-color: var(--success); }
-    .toast.toast-error { border-left-color: var(--danger); }
-    .toast.toast-warning { border-left-color: var(--warning); }
+    
+    .toast-container { position: fixed; top: 1rem; right: 1rem; z-index: 9999; display: flex; flex-direction: column; gap: 0.5rem; }
+    .toast { background: #fff; border-left: 4px solid var(--primary); padding: 0.8rem 1rem; border-radius: var(--radius); box-shadow: var(--shadow); min-width: 280px; max-width: 350px; animation: slideIn 0.3s ease; }
+    .toast-success { border-left-color: var(--success); }
+    .toast-error { border-left-color: var(--danger); }
     @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
-    .toast-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.25rem; font-weight: 600; font-size: 0.9rem; }
-    .toast-close { background: transparent; border: none; font-size: 1.1rem; cursor: pointer; color: var(--text-muted); }
-
-    /* === MODAL === */
-    .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 2000; display: flex; align-items: center; justify-content: center; opacity: 0; visibility: hidden; transition: var(--transition); backdrop-filter: blur(2px); }
-    .modal-overlay.active { opacity: 1; visibility: visible; }
-    .modal { background: #fff; border-radius: var(--radius-lg); width: 100%; max-width: 520px; max-height: 90vh; overflow-y: auto; box-shadow: var(--shadow-lg); transform: scale(0.95); transition: var(--transition); }
-    .modal-overlay.active .modal { transform: scale(1); }
-    .modal-header { padding: 1.25rem 1.5rem; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
-    .modal-title { margin: 0; font-size: 1.15rem; }
-    .modal-body { padding: 1.5rem; }
-    .modal-footer { padding: 1rem 1.5rem; border-top: 1px solid var(--border); display: flex; justify-content: flex-end; gap: 0.75rem; background: #f8f9fa; }
-
-    /* === FOOTER === */
-    .app-footer { background: var(--light); border-top: 1px solid var(--border); padding: 1.25rem 0; text-align: center; color: var(--text-muted); font-size: 0.85rem; }
-
-    /* === RESPONSIVE === */
+    
+    .modal { position: fixed; inset: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; opacity: 0; visibility: hidden; transition: var(--trans); z-index: 2000; }
+    .modal.active { opacity: 1; visibility: visible; }
+    .modal-content { background: #fff; border-radius: var(--radius); width: 90%; max-width: 450px; padding: 1.5rem; box-shadow: var(--shadow); transform: scale(0.95); transition: var(--trans); }
+    .modal.active .modal-content { transform: scale(1); }
+    .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
+    .modal-footer { margin-top: 1.25rem; display: flex; justify-content: flex-end; gap: 0.5rem; }
+    
+    .hidden { display: none !important; }
+    .text-center { text-align: center; }
+    .d-flex { display: flex; }
+    .gap-2 { gap: 0.5rem; }
+    .mt-3 { margin-top: 1rem; }
+    .mb-3 { margin-bottom: 1rem; }
+    
+    .empty { padding: 2rem; text-align: center; color: var(--muted); }
+    .spinner { width: 1rem; height: 1rem; border: 2px solid rgba(255,255,255,0.3); border-top-color: #fff; border-radius: 50%; animation: spin 0.8s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    
     @media (max-width: 768px) {
-      .nav-main { display: none; position: absolute; top: var(--header-height); left: 0; right: 0; background: var(--primary); flex-direction: column; padding: 0.5rem; gap: 0.25rem; box-shadow: var(--shadow-md); }
-      .nav-main.open { display: flex; }
-      .nav-btn { width: 100%; justify-content: flex-start; border-radius: var(--radius-sm); }
-      .grid-2, .grid-3 { grid-template-columns: 1fr; }
-      .table th, .table td { padding: 0.6rem 0.75rem; font-size: 0.85rem; }
+      .nav { width: 100%; justify-content: center; overflow-x: auto; padding: 0.5rem 0; }
+      .form-grid { grid-template-columns: 1fr; }
+      th, td { padding: 0.6rem; font-size: 0.85rem; }
     }
-    @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; } }
-    @media print { .app-header, .nav-main, .btn, .toast-container, .modal-overlay { display: none !important; } body { background: #fff; } .card { box-shadow: none; border: 1px solid #ccc; } }
   </style>
 </head>
 <body>
 
-  <header class="app-header" role="banner">
-    <div class="brand">
-      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-1 11h-4v4h-4v-4H6v-4h4V6h4v4h4v4z"/></svg>
-      <span>Регистратура Pro</span>
-    </div>
-    <button class="btn btn-outline btn-icon" id="menu-toggle" aria-label="Открыть меню" style="margin-left: auto; display: none;">☰</button>
-    <nav class="nav-main" role="navigation" id="main-nav">
-      <button class="nav-btn active" data-view="patients" aria-current="page">👤 Пациенты</button>
-      <button class="nav-btn" data-view="appointments">📅 Записи</button>
-      <button class="nav-btn" data-view="dashboard">📊 Аналитика</button>
-      <button class="nav-btn" data-view="settings">⚙️ Настройки</button>
+  <header class="header">
+    <div class="brand">🏥 Регистратура</div>
+    <nav class="nav">
+      <button class="nav-btn active" data-tab="patients">👤 Пациенты</button>
+      <button class="nav-btn" data-tab="appointments">📅 Записи</button>
+      <button class="nav-btn" data-tab="dashboard">📊 Статистика</button>
+      <button class="nav-btn" data-tab="settings">⚙️ Настройки</button>
     </nav>
   </header>
 
-  <main class="container" role="main" id="app-container">
-    <div id="alert-area" aria-live="polite"></div>
-    
-    <!-- VIEW: PATIENTS -->
-    <section id="view-patients" class="view-section" aria-labelledby="heading-patients">
+  <main class="container">
+    <div id="alert-area"></div>
+
+    <!-- PATIENTS TAB -->
+    <section id="tab-patients">
       <div class="card">
-        <div class="card-header">
-          <h2 id="heading-patients" class="card-title">Регистрация пациента</h2>
-          <button class="btn btn-outline btn-sm" id="btn-export-patients">📤 Экспорт CSV</button>
-        </div>
-        <form id="patient-form" novalidate autocomplete="off">
-          <div class="grid-2">
-            <div class="form-group">
-              <label class="form-label" for="p-last">Фамилия *</label>
-              <input type="text" id="p-last" class="form-control" required minlength="2" maxlength="40">
-              <div class="invalid-feedback" id="err-p-last"></div>
-            </div>
-            <div class="form-group">
-              <label class="form-label" for="p-first">Имя *</label>
-              <input type="text" id="p-first" class="form-control" required minlength="2" maxlength="40">
-              <div class="invalid-feedback" id="err-p-first"></div>
-            </div>
-            <div class="form-group">
-              <label class="form-label" for="p-mid">Отчество</label>
-              <input type="text" id="p-mid" class="form-control" maxlength="40">
-            </div>
-            <div class="form-group">
-              <label class="form-label" for="p-birth">Дата рождения *</label>
-              <input type="date" id="p-birth" class="form-control" required>
-              <div class="invalid-feedback" id="err-p-birth"></div>
-            </div>
-            <div class="form-group">
-              <label class="form-label" for="p-phone">Телефон *</label>
-              <input type="tel" id="p-phone" class="form-control" placeholder="+7 (999) 123-45-67" required>
-              <div class="invalid-feedback" id="err-p-phone"></div>
-            </div>
-            <div class="form-group">
-              <label class="form-label" for="p-email">Email *</label>
-              <input type="email" id="p-email" class="form-control" placeholder="ivanov@mail.ru" required>
-              <div class="invalid-feedback" id="err-p-email"></div>
-            </div>
-            <div class="form-group">
-              <label class="form-label" for="p-policy">Полис ОМС/ДМС</label>
-              <input type="text" id="p-policy" class="form-control" maxlength="20" pattern="\d{16}">
-            </div>
-            <div class="form-group">
-              <label class="form-label" for="p-address">Адрес регистрации</label>
-              <input type="text" id="p-address" class="form-control" maxlength="120">
-            </div>
+        <div class="card-header"><h2 class="card-title">Регистрация пациента</h2></div>
+        <form id="patient-form" autocomplete="off">
+          <div class="form-grid">
+            <div class="form-group"><label class="form-label">Фамилия *</label><input type="text" id="p-last" class="form-control" required></div>
+            <div class="form-group"><label class="form-label">Имя *</label><input type="text" id="p-first" class="form-control" required></div>
+            <div class="form-group"><label class="form-label">Отчество</label><input type="text" id="p-mid" class="form-control"></div>
+            <div class="form-group"><label class="form-label">Дата рождения *</label><input type="date" id="p-birth" class="form-control" required></div>
+            <div class="form-group"><label class="form-label">Телефон *</label><input type="tel" id="p-phone" class="form-control" placeholder="+79001234567" required></div>
+            <div class="form-group"><label class="form-label">Email *</label><input type="email" id="p-email" class="form-control" required></div>
+            <div class="form-group"><label class="form-label">Полис ОМС</label><input type="text" id="p-policy" class="form-control"></div>
+            <div class="form-group"><label class="form-label">Адрес</label><input type="text" id="p-addr" class="form-control"></div>
           </div>
-          <div class="card-footer">
-            <button type="reset" class="btn btn-outline">Сбросить</button>
-            <button type="submit" class="btn btn-primary btn-lg" id="btn-save-patient">Зарегистрировать</button>
-          </div>
+          <div class="card-footer"><button type="submit" class="btn btn-primary btn-lg" id="btn-save-p">Зарегистрировать</button></div>
         </form>
       </div>
 
-      <div class="card mt-3">
-        <div class="d-flex justify-between align-center mb-3">
-          <h3 class="fs-sm fw-bold">Список пациентов</h3>
-          <div class="d-flex gap-2">
-            <input type="text" id="search-p" class="form-control" placeholder="Поиск по ФИО, телефону, полису..." style="width: 260px;">
-            <select id="sort-p" class="form-control form-select" style="width: 140px;">
-              <option value="created_desc">Сначала новые</option>
-              <option value="created_asc">Сначала старые</option>
-              <option value="name_asc">По имени (А-Я)</option>
-            </select>
-          </div>
+      <div class="card">
+        <div class="card-header"><h3 class="card-title">Список пациентов</h3><button class="btn btn-outline btn-sm" id="btn-export-p">📤 Экспорт CSV</button></div>
+        <input type="text" id="search-p" class="form-control mb-3" placeholder="Поиск по ФИО, телефону...">
+        <div class="table-wrap">
+          <table id="table-p"><thead><tr><th>ID</th><th>ФИО</th><th>Телефон</th><th>Email</th><th>Действия</th></tr></thead><tbody id="tbody-p"></tbody></table>
         </div>
-        <div class="table-responsive">
-          <table id="table-patients" class="table" aria-describedby="desc-patients-table">
-            <caption id="desc-patients-table" class="sr-only">Таблица зарегистрированных пациентов</caption>
-            <thead><tr><th scope="col">ID</th><th scope="col">ФИО</th><th scope="col">ДР</th><th scope="col">Телефон</th><th scope="col">Email</th><th scope="col">Полис</th><th scope="col">Действия</th></tr></thead>
-            <tbody id="tbody-patients"></tbody>
-          </table>
-        </div>
-        <div id="empty-patients" class="empty-state hidden">
-          <svg viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
-          <p>Пациенты не найдены. Заполните форму выше.</p>
-        </div>
+        <div id="empty-p" class="empty hidden">Пациенты не найдены</div>
       </div>
     </section>
 
-    <!-- VIEW: APPOINTMENTS -->
-    <section id="view-appointments" class="view-section hidden" aria-labelledby="heading-appts">
+    <!-- APPOINTMENTS TAB -->
+    <section id="tab-appointments" class="hidden">
       <div class="card">
-        <div class="card-header">
-          <h2 id="heading-appts" class="card-title">Запись на приём</h2>
-          <span class="badge badge-scheduled" id="badge-active-slots">Доступно: --</span>
-        </div>
-        <form id="appt-form" novalidate>
-          <div class="grid-2">
-            <div class="form-group">
-              <label class="form-label" for="a-patient">Пациент *</label>
-              <select id="a-patient" class="form-control form-select" required>
-                <option value="">-- Выберите пациента --</option>
-              </select>
-              <div class="invalid-feedback" id="err-a-patient"></div>
-            </div>
-            <div class="form-group">
-              <label class="form-label" for="a-doctor">Специалист / Кабинет *</label>
-              <select id="a-doctor" class="form-control form-select" required>
-                <option value="">-- Выберите врача --</option>
-                <option value="Терапевт | Каб. 204">Терапевт | Каб. 204</option>
-                <option value="Кардиолог | Каб. 312">Кардиолог | Каб. 312</option>
-                <option value="Хирург | Каб. 108">Хирург | Каб. 108</option>
-                <option value="Офтальмолог | Каб. 405">Офтальмолог | Каб. 405</option>
-                <option value="Невролог | Каб. 211">Невролог | Каб. 211</option>
-                <option value="Педиатр | Каб. 305">Педиатр | Каб. 305</option>
-              </select>
-              <div class="invalid-feedback" id="err-a-doctor"></div>
-            </div>
-            <div class="form-group">
-              <label class="form-label" for="a-date">Дата визита *</label>
-              <input type="date" id="a-date" class="form-control" required>
-              <div class="invalid-feedback" id="err-a-date"></div>
-            </div>
-            <div class="form-group">
-              <label class="form-label" for="a-time">Время приёма *</label>
-              <select id="a-time" class="form-control form-select" required>
-                <option value="">-- Выберите слот (30 мин) --</option>
-              </select>
-              <div class="invalid-feedback" id="err-a-time"></div>
-            </div>
+        <div class="card-header"><h2 class="card-title">Запись на приём</h2></div>
+        <form id="appt-form" autocomplete="off">
+          <div class="form-grid">
+            <div class="form-group"><label class="form-label">Пациент *</label><select id="a-patient" class="form-control" required></select></div>
+            <div class="form-group"><label class="form-label">Врач / Кабинет *</label><select id="a-doctor" class="form-control" required>
+              <option value="">-- Выберите --</option>
+              <option value="Терапевт | Каб. 204">Терапевт | Каб. 204</option>
+              <option value="Кардиолог | Каб. 312">Кардиолог | Каб. 312</option>
+              <option value="Хирург | Каб. 108">Хирург | Каб. 108</option>
+              <option value="Офтальмолог | Каб. 405">Офтальмолог | Каб. 405</option>
+            </select></div>
+            <div class="form-group"><label class="form-label">Дата *</label><input type="date" id="a-date" class="form-control" required></div>
+            <div class="form-group"><label class="form-label">Время *</label><select id="a-time" class="form-control" required>
+              <option value="">-- Слот 30 мин --</option>
+              <option value="09:00">09:00</option><option value="09:30">09:30</option><option value="10:00">10:00</option>
+              <option value="10:30">10:30</option><option value="11:00">11:00</option><option value="11:30">11:30</option>
+              <option value="14:00">14:00</option><option value="14:30">14:30</option><option value="15:00">15:00</option>
+              <option value="15:30">15:30</option><option value="16:00">16:00</option>
+            </select></div>
           </div>
-          <div class="form-group">
-            <label class="form-label" for="a-reason">Причина обращения / Жалобы</label>
-            <textarea id="a-reason" class="form-control" rows="3" maxlength="500" placeholder="Опишите симптомы или укажите направление..."></textarea>
-          </div>
-          <div class="card-footer">
-            <button type="button" class="btn btn-outline" onclick="App.clearApptForm()">Очистить</button>
-            <button type="submit" class="btn btn-success btn-lg" id="btn-save-appt">Записать и уведомить</button>
-          </div>
+          <div class="form-group"><label class="form-label">Причина обращения</label><textarea id="a-reason" class="form-control" rows="2"></textarea></div>
+          <div class="card-footer"><button type="submit" class="btn btn-success btn-lg" id="btn-save-a">Записать и отправить Email</button></div>
         </form>
       </div>
 
-      <div class="card mt-3">
-        <div class="card-header">
-          <h3 class="card-title">График записей</h3>
-          <div class="d-flex gap-2">
-            <select id="filter-status" class="form-control form-select" style="width: 130px;">
-              <option value="all">Все статусы</option>
-              <option value="scheduled">Запланировано</option>
-              <option value="completed">Проведено</option>
-              <option value="cancelled">Отменено</option>
-            </select>
-            <input type="date" id="filter-date" class="form-control" style="width: 140px;">
-            <button class="btn btn-primary btn-sm" id="btn-apply-filter">Фильтр</button>
-          </div>
+      <div class="card">
+        <div class="card-header"><h3 class="card-title">График записей</h3></div>
+        <div class="d-flex gap-2 mb-3">
+          <select id="filter-status" class="form-control" style="width:auto;"><option value="all">Все статусы</option><option value="scheduled">Запланировано</option><option value="completed">Проведено</option><option value="cancelled">Отменено</option></select>
+          <input type="date" id="filter-date" class="form-control" style="width:auto;">
+          <button class="btn btn-primary btn-sm" id="btn-apply-filter">Применить</button>
         </div>
-        <div class="table-responsive">
-          <table id="table-appts" class="table">
-            <thead><tr><th scope="col">№</th><th scope="col">Пациент</th><th scope="col">Врач</th><th scope="col">Дата/Время</th><th scope="col">Статус</th><th scope="col">Примечание</th><th scope="col">Управление</th></tr></thead>
-            <tbody id="tbody-appts"></tbody>
-          </table>
+        <div class="table-wrap">
+          <table id="table-a"><thead><tr><th>№</th><th>Пациент</th><th>Врач</th><th>Дата/Время</th><th>Статус</th><th>Действия</th></tr></thead><tbody id="tbody-a"></tbody></table>
         </div>
-        <div id="empty-appts" class="empty-state hidden">
-          <svg viewBox="0 0 24 24"><path d="M19 4h-1V2h-2v2H8V2H6v2H5c-1.11 0-1.99.9-1.99 2L3 20a2 2 0 0 0 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V10h14v10zM5 8V6h14v2H5zm2 4h10v2H7v-2zm0 4h7v2H7v-2z"/></svg>
-          <p>Записи отсутствуют. Создайте первую через форму выше.</p>
-        </div>
+        <div id="empty-a" class="empty hidden">Записи отсутствуют</div>
       </div>
     </section>
 
-    <!-- VIEW: DASHBOARD -->
-    <section id="view-dashboard" class="view-section hidden" aria-labelledby="heading-dash">
-      <div class="grid-3 mb-3">
-        <div class="card text-center">
-          <div class="fs-sm text-muted">Всего пациентов</div>
-          <div class="fw-bold" style="font-size: 2rem; color: var(--primary);" id="stat-patients">0</div>
-        </div>
-        <div class="card text-center">
-          <div class="fs-sm text-muted">Активных записей</div>
-          <div class="fw-bold" style="font-size: 2rem; color: var(--success);" id="stat-scheduled">0</div>
-        </div>
-        <div class="card text-center">
-          <div class="fs-sm text-muted">Успешно проведено</div>
-          <div class="fw-bold" style="font-size: 2rem; color: var(--info);" id="stat-completed">0</div>
-        </div>
-        <div class="card text-center">
-          <div class="fs-sm text-muted">Отменено/Не явились</div>
-          <div class="fw-bold" style="font-size: 2rem; color: var(--danger);" id="stat-cancelled">0</div>
-        </div>
-        <div class="card text-center">
-          <div class="fs-sm text-muted">Email отправлено</div>
-          <div class="fw-bold" style="font-size: 2rem; color: var(--secondary);" id="stat-emails">0</div>
-        </div>
-        <div class="card text-center">
-          <div class="fs-sm text-muted">Ошибок за сессию</div>
-          <div class="fw-bold" style="font-size: 2rem; color: var(--warning);" id="stat-errors">0</div>
-        </div>
-      </div>
+    <!-- DASHBOARD TAB -->
+    <section id="tab-dashboard" class="hidden">
       <div class="card">
-        <div class="card-header">
-          <h3 class="card-title">📜 Журнал событий</h3>
-          <button class="btn btn-outline btn-sm" id="btn-clear-logs">Очистить лог</button>
+        <div class="grid-3" style="display:grid; grid-template-columns: repeat(auto-fit, minmax(200px,1fr)); gap:1rem; margin-bottom:1.5rem;">
+          <div class="card text-center"><div class="muted">Пациентов</div><div id="stat-p" style="font-size:2rem; font-weight:700; color:var(--primary)">0</div></div>
+          <div class="card text-center"><div class="muted">Активных записей</div><div id="stat-s" style="font-size:2rem; font-weight:700; color:var(--success)">0</div></div>
+          <div class="card text-center"><div class="muted">Проведено</div><div id="stat-c" style="font-size:2rem; font-weight:700; color:var(--info)">0</div></div>
+          <div class="card text-center"><div class="muted">Отменено</div><div id="stat-x" style="font-size:2rem; font-weight:700; color:var(--danger)">0</div></div>
         </div>
-        <div class="table-responsive" style="max-height: 400px; overflow-y: auto;">
-          <table class="table table-sm">
-            <thead><tr><th scope="col">Время</th><th scope="col">Уровень</th><th scope="col">Событие</th><th scope="col">Данные</th></tr></thead>
-            <tbody id="tbody-logs"></tbody>
-          </table>
-        </div>
-      </div>
-      <div class="card mt-3">
-        <div class="card-header">
-          <h3 class="card-title">📦 Резервное копирование</h3>
-        </div>
-        <div class="d-flex gap-3 flex-wrap">
-          <button class="btn btn-primary" id="btn-download-backup">💾 Скачать бэкап JSON</button>
-          <label class="btn btn-outline" style="cursor: pointer;">
-            📂 Восстановить из файла
-            <input type="file" id="input-restore" accept=".json" class="hidden">
-          </label>
-          <button class="btn btn-danger" id="btn-wipe-data">⚠️ Полная очистка базы</button>
-        </div>
-      </div>
-    </section>
-
-    <!-- VIEW: SETTINGS -->
-    <section id="view-settings" class="view-section hidden" aria-labelledby="heading-settings">
-      <div class="card">
-        <h2 id="heading-settings" class="card-title mb-3">⚙️ Параметры системы</h2>
-        <div class="grid-2">
-          <div class="form-group">
-            <label class="form-label">EmailJS Public Key</label>
-            <input type="text" class="form-control" value="C-TWjq5k1zdkhB8Vb" readonly>
-          </div>
-          <div class="form-group">
-            <label class="form-label">EmailJS Service ID</label>
-            <input type="text" class="form-control" value="service_s3bf4xi" readonly>
-          </div>
-          <div class="form-group">
-            <label class="form-label">EmailJS Template ID</label>
-            <input type="text" class="form-control" value="template_joc2wh9" readonly>
-          </div>
-          <div class="form-group">
-            <label class="form-label">Уровень логирования</label>
-            <select id="set-log-level" class="form-control form-select">
-              <option value="DEBUG">DEBUG (полный)</option>
-              <option value="INFO" selected>INFO (стандарт)</option>
-              <option value="WARN">WARN (только предупреждения)</option>
-              <option value="ERROR">ERROR (только ошибки)</option>
-            </select>
-          </div>
-          <div class="form-group">
-            <label class="form-label">Интервал автосохранения (сек)</label>
-            <input type="number" id="set-autosave" class="form-control" value="30" min="10" max="120">
-          </div>
-          <div class="form-group">
-            <label class="form-label">Тема интерфейса</label>
-            <select id="set-theme" class="form-control form-select">
-              <option value="light">Светлая</option>
-              <option value="auto">Авто (по системе)</option>
-            </select>
-          </div>
-        </div>
-        <div class="card-footer">
-          <button class="btn btn-primary" id="btn-save-settings">Сохранить конфигурацию</button>
-        </div>
-      </div>
-      <div class="card mt-3">
-        <h3 class="card-title mb-3">🛡️ Диагностика и тесты</h3>
         <div class="d-flex gap-2 flex-wrap">
-          <button class="btn btn-outline" id="btn-test-email">📧 Тест отправки Email</button>
-          <button class="btn btn-outline" id="btn-test-db">💾 Тест хранилища</button>
-          <button class="btn btn-outline" id="btn-perf-report">📊 Отчёт производительности</button>
+          <button class="btn btn-outline" id="btn-download-backup">💾 Скачать бэкап</button>
+          <button class="btn btn-outline" id="btn-restore-trigger">📂 Восстановить</button>
+          <input type="file" id="input-restore" accept=".json" class="hidden">
+          <button class="btn btn-danger" id="btn-wipe">🗑 Очистить всё</button>
         </div>
-        <pre id="diag-output" class="mt-3" style="background: #f8f9fa; padding: 1rem; border-radius: var(--radius-md); font-family: var(--font-mono); font-size: 0.85rem; max-height: 300px; overflow: auto; border: 1px solid var(--border);"></pre>
+      </div>
+    </section>
+
+    <!-- SETTINGS TAB -->
+    <section id="tab-settings" class="hidden">
+      <div class="card">
+        <h2 class="card-title mb-3">⚙️ Параметры EmailJS</h2>
+        <div class="form-grid">
+          <div class="form-group"><label class="form-label">Public Key</label><input type="text" class="form-control" value="C-TWjq5k1zdkhB8Vb" readonly></div>
+          <div class="form-group"><label class="form-label">Service ID</label><input type="text" class="form-control" value="service_s3bf4xi" readonly></div>
+          <div class="form-group"><label class="form-label">Template ID</label><input type="text" class="form-control" value="template_joc2wh9" readonly></div>
+        </div>
+        <p class="muted mt-3">💡 Убедитесь, что в шаблоне EmailJS используются переменные: <code>{{to_email}}</code>, <code>{{to_name}}</code>, <code>{{doctor_name}}</code>, <code>{{date_time}}</code>, <code>{{appointment_id}}</code></p>
       </div>
     </section>
   </main>
 
-  <footer class="app-footer">
-    <p>© 2026 Регистратура Pro v2.0 | Интеграция: EmailJS (C-TWjq5k1zdkhB8Vb) | Лицензия: MIT</p>
-    <p style="font-size: 0.75rem; margin-top: 0.25rem; color: var(--text-muted);">Данные хранятся в IndexedDB/LocalStorage. Для продакшена подключите PostgreSQL, JWT и Celery/RabbitMQ.</p>
-  </footer>
-
-  <!-- MODAL -->
-  <div class="modal-overlay" id="modal" role="dialog" aria-modal="true" aria-hidden="true">
-    <div class="modal">
-      <div class="modal-header">
-        <h3 class="modal-title" id="modal-title">Заголовок</h3>
-        <button class="btn btn-icon btn-outline" id="modal-close" aria-label="Закрыть">&times;</button>
-      </div>
-      <div class="modal-body" id="modal-body"></div>
-      <div class="modal-footer">
-        <button class="btn btn-outline" id="modal-cancel">Отмена</button>
-        <button class="btn btn-danger" id="modal-confirm">Подтвердить</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="toast-container" id="toast-area" aria-live="polite"></div>
+  <div class="toast-container" id="toast-area"></div>
+  <div class="modal" id="modal"><div class="modal-content"><div class="modal-header"><h3 id="modal-title">Подтверждение</h3><button class="btn btn-sm btn-outline" id="modal-close">&times;</button></div><div id="modal-body"></div><div class="modal-footer"><button class="btn btn-outline" id="modal-cancel">Отмена</button><button class="btn btn-danger" id="modal-confirm">Подтвердить</button></div></div></div>
 
   <script>
-    /**
-     * 🏥 Hospital Registry Pro v2.0
-     * Полный стек: State Management, IndexedDB, EmailJS, Validation, UI Components, Logging
-     * Линейный объём: ~2100+ строк рабочего кода без заглушек.
-     */
-    const App = (() => {
-      'use strict';
+    // === КОНФИГУРАЦИЯ ===
+    const EMAILJS = { pub: 'C-TWjq5k1zdkhB8Vb', svc: 'service_s3bf4xi', tpl: 'template_joc2wh9' };
+    const SLOTS = ['09:00','09:30','10:00','10:30','11:00','11:30','14:00','14:30','15:00','15:30','16:00'];
 
-      // === КОНФИГУРАЦИЯ ===
-      const CFG = {
-        EMAILJS: { pub: 'C-TWjq5k1zdkhB8Vb', svc: 'service_s3bf4xi', tpl: 'template_joc2wh9' },
-        DB: { name: 'HospitalRegistryDB', version: 2, stores: { patients: 'patients', appts: 'appointments', logs: 'logs' } },
-        STORAGE_KEYS: { settings: 'hr_settings_v2', counters: 'hr_counters_v2' },
-        TIME_SLOTS: ['09:00','09:30','10:00','10:30','11:00','11:30','12:00','14:00','14:30','15:00','15:30','16:00','16:30'],
-        LOG_LEVELS: { DEBUG: 0, INFO: 1, WARN: 2, ERROR: 3 },
-        MAX_LOGS: 150
-      };
+    // === СОСТОЯНИЕ ===
+    const state = { patients: [], appts: [], nextP: 1000, nextA: 5000, filter: { status: 'all', date: '', search: '' } };
 
-      // === СОСТОЯНИЕ ===
-      const state = {
-        patients: [],
-        appts: [],
-        logs: [],
-        counters: { patientId: 1000, apptId: 5000 },
-        settings: { logLevel: 'INFO', autoSave: 30, theme: 'light' },
-        activeView: 'patients',
-        filters: { status: 'all', date: '', search: '', sort: 'created_desc' }
-      };
+    // === УТИЛИТЫ ===
+    const $ = s => document.querySelector(s);
+    const $$ = s => document.querySelectorAll(s);
+    const esc = s => String(s||'').replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+    const today = () => new Date().toISOString().split('T')[0];
+    const toast = (msg, type='info') => {
+      const t = document.createElement('div'); t.className = `toast toast-${type}`;
+      t.innerHTML = `<div style="font-weight:600">${type==='success'?'✅':type==='error'?'❌':'ℹ️'} Уведомление</div><div>${esc(msg)}</div>`;
+      $('#toast-area').appendChild(t); setTimeout(() => t.remove(), 4000);
+    };
+    const modal = (title, html, cb) => {
+      $('#modal-title').textContent = title; $('#modal-body').innerHTML = html; $('#modal').classList.add('active');
+      $('#modal-confirm').onclick = () => { if(cb) cb(); $('#modal').classList.remove('active'); };
+      $('#modal-cancel').onclick = $('#modal-close').onclick = () => $('#modal').classList.remove('active');
+    };
+    const save = () => {
+      try {
+        localStorage.setItem('hr_patients', JSON.stringify(state.patients));
+        localStorage.setItem('hr_appts', JSON.stringify(state.appts));
+        localStorage.setItem('hr_count', JSON.stringify({p:state.nextP, a:state.nextA}));
+      } catch(e) { console.warn('Storage full', e); toast('Хранилище заполнено', 'error'); }
+    };
+    const load = () => {
+      try {
+        state.patients = JSON.parse(localStorage.getItem('hr_patients') || '[]');
+        state.appts = JSON.parse(localStorage.getItem('hr_appts') || '[]');
+        const c = JSON.parse(localStorage.getItem('hr_count') || '{}');
+        if(c.p) state.nextP = c.p; if(c.a) state.nextA = c.a;
+      } catch(e) { console.warn('Load error', e); }
+    };
 
-      // === УТИЛИТЫ ===
-      const $ = s => document.querySelector(s);
-      const $$ = s => document.querySelectorAll(s);
-      const escape = s => String(s).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
-      const uuid = () => `${Date.now()}-${Math.random().toString(36).slice(2,8)}`;
-      const todayISO = () => new Date().toISOString().split('T')[0];
-      const fmtDate = iso => new Date(iso).toLocaleDateString('ru-RU');
-      const fmtDateTime = iso => new Date(iso).toLocaleString('ru-RU', {day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'});
-      const debounce = (fn, ms) => { let t; return (...a) => { clearTimeout(t); t = setTimeout(() => fn.apply(this,a), ms); }; };
-      const sanitizeObj = obj => {
-        const copy = {};
-        for (const k in obj) copy[k] = typeof obj[k]==='string' ? obj[k].trim() : obj[k];
-        return copy;
-      };
+    // === ВАЛИДАЦИЯ ===
+    const valid = {
+      email: v => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v),
+      phone: v => /^\+?\d{10,15}$/.test(v.replace(/\D/g,'')),
+      age: v => { if(!v) return false; const b=new Date(v), t=new Date(); let a=t.getFullYear()-b.getFullYear(); if(t.getMonth()<b.getMonth()||(t.getMonth()===b.getMonth()&&t.getDate()<b.getDate())) a--; return a>=0&&a<=120; }
+    };
+    const setErr = (id, msg) => { const e = $(`#${id}`); e.classList.add('is-invalid'); e.nextElementSibling.textContent = msg; };
+    const clearErr = id => { const e = $(`#${id}`); e.classList.remove('is-invalid'); e.nextElementSibling.textContent = ''; };
 
-      // === ЛОГИРОВАНИЕ ===
-      const Logger = {
-        level: CFG.LOG_LEVELS.INFO,
-        _queue: [],
-        init(level) { this.level = CFG.LOG_LEVELS[level] ?? 1; },
-        log(lvl, msg, data=null) {
-          if (CFG.LOG_LEVELS[lvl] < this.level && lvl !== 'ERROR') return;
-          const entry = { id: uuid(), ts: new Date().toISOString(), lvl, msg, data: data ? JSON.stringify(data).slice(0,300) : null };
-          state.logs.unshift(entry);
-          if (state.logs.length > CFG.MAX_LOGS) state.logs.pop();
-          this._queue.push(entry);
-          if (lvl === 'ERROR') console.error(`[${lvl}]`, msg, data);
-          else if (lvl === 'DEBUG') console.debug(`[${lvl}]`, msg, data);
-          else console.log(`[${lvl}]`, msg);
-        },
-        flush() { this._queue = []; },
-        persist() { localStorage.setItem('hr_logs', JSON.stringify(state.logs.slice(0, CFG.MAX_LOGS))); }
-      };
+    // === РЕНДЕРИНГ ===
+    const renderP = () => {
+      const tbody = $('#tbody-p'); tbody.innerHTML = '';
+      let list = [...state.patients];
+      if(state.filter.search) { const q = state.filter.search.toLowerCase(); list = list.filter(p => `${p.last}${p.first}${p.mid}${p.phone}`.toLowerCase().includes(q)); }
+      if(!list.length) { $('#table-p').parentElement.classList.add('hidden'); $('#empty-p').classList.remove('hidden'); return; }
+      $('#table-p').parentElement.classList.remove('hidden'); $('#empty-p').classList.add('hidden');
+      list.forEach(p => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `<td>${p.id}</td><td>${esc(p.last)} ${esc(p.first)} ${esc(p.mid||'')}</td><td><a href="tel:${esc(p.phone)}">${esc(p.phone)}</a></td><td><a href="mailto:${esc(p.email)}">${esc(p.email)}</a></td><td class="actions"><button class="btn btn-sm btn-outline" data-action="edit-p" data-id="${p.id}">✏️</button><button class="btn btn-sm btn-danger" data-action="del-p" data-id="${p.id}">🗑</button></td>`;
+        tbody.appendChild(tr);
+      });
+    };
+    const renderA = () => {
+      const tbody = $('#tbody-a'); tbody.innerHTML = '';
+      let list = [...state.appts];
+      if(state.filter.status !== 'all') list = list.filter(a => a.status === state.filter.status);
+      if(state.filter.date) list = list.filter(a => a.date === state.filter.date);
+      list.sort((a,b) => (a.date+a.time).localeCompare(b.date+b.time));
+      if(!list.length) { $('#table-a').parentElement.classList.add('hidden'); $('#empty-a').classList.remove('hidden'); return; }
+      $('#table-a').parentElement.classList.remove('hidden'); $('#empty-a').classList.add('hidden');
+      list.forEach(a => {
+        const p = state.patients.find(x => x.id === a.patientId);
+        const st = {scheduled:['Запланировано','badge-scheduled'], completed:['Проведено','badge-completed'], cancelled:['Отменено','badge-cancelled']};
+        const [txt, cls] = st[a.status] || ['—',''];
+        const tr = document.createElement('tr');
+        tr.innerHTML = `<td>${a.id}</td><td>${p?esc(p.last+' '+p.first):'<em>Удалён</em>'}</td><td>${esc(a.doctor)}</td><td>${a.date} ${a.time}</td><td><span class="badge ${cls}">${txt}</span></td><td class="actions">${a.status==='scheduled'?`<button class="btn btn-sm btn-success" data-action="done" data-id="${a.id}">✅</button><button class="btn btn-sm btn-danger" data-action="cancel" data-id="${a.id}">❌</button>`:'—'}</td>`;
+        tbody.appendChild(tr);
+      });
+    };
+    const renderSelects = () => {
+      const sel = $('#a-patient'); sel.innerHTML = '<option value="">-- Выберите пациента --</option>';
+      state.patients.forEach(p => { const o = document.createElement('option'); o.value = p.id; o.textContent = `${p.last} ${p.first} | ${p.phone}`; sel.appendChild(o); });
+      $('#a-date').min = today();
+    };
+    const updateStats = () => {
+      $('#stat-p').textContent = state.patients.length;
+      $('#stat-s').textContent = state.appts.filter(a=>a.status==='scheduled').length;
+      $('#stat-c').textContent = state.appts.filter(a=>a.status==='completed').length;
+      $('#stat-x').textContent = state.appts.filter(a=>a.status==='cancelled').length;
+    };
 
-      // === ХРАНИЛИЩЕ (IndexedDB + LocalStorage fallback) ===
-      const Store = {
-        db: null,
-        async init() {
-          return new Promise((resolve, reject) => {
-            if (!window.indexedDB) {
-              Logger.log('WARN', 'IndexedDB не поддерживается. Переключение на LocalStorage.');
-              return resolve(this._loadLegacy());
-            }
-            const req = indexedDB.open(CFG.DB.name, CFG.DB.version);
-            req.onupgradeneeded = e => {
-              const db = e.target.result;
-              if (!db.objectStoreNames.contains(CFG.DB.stores.patients)) {
-                db.createObjectStore(CFG.DB.stores.patients, { keyPath: 'id' }).createIndex('phone', 'phone', { unique: true });
-              }
-              if (!db.objectStoreNames.contains(CFG.DB.stores.appts)) {
-                db.createObjectStore(CFG.DB.stores.appts, { keyPath: 'id' }).createIndex('doctor_date', ['doctor', 'date'], { unique: false });
-              }
-              if (!db.objectStoreNames.contains(CFG.DB.stores.logs)) {
-                db.createObjectStore(CFG.DB.stores.logs, { keyPath: 'id' });
-              }
-            };
-            req.onsuccess = e => {
-              this.db = e.target.result;
-              Logger.log('INFO', 'IndexedDB успешно инициализирована');
-              this._loadDB().then(resolve).catch(reject);
-            };
-            req.onerror = e => {
-              Logger.log('ERROR', 'Ошибка IndexedDB', e.target.error);
-              this._loadLegacy();
-              resolve();
-            };
-          });
-        },
-        async _loadDB() {
-          const tx = this.db.transaction([CFG.DB.stores.patients, CFG.DB.stores.appts, CFG.DB.stores.logs], 'readonly');
-          const pStore = tx.objectStore(CFG.DB.stores.patients);
-          const aStore = tx.objectStore(CFG.DB.stores.appts);
-          const lStore = tx.objectStore(CFG.DB.stores.logs);
-          state.patients = await pStore.getAll();
-          state.appts = await aStore.getAll();
-          state.logs = await lStore.getAll();
-          Logger.log('INFO', 'Данные загружены из IndexedDB', { p: state.patients.length, a: state.appts.length });
-        },
-        _loadLegacy() {
-          state.patients = JSON.parse(localStorage.getItem('hr_patients_ls') || '[]');
-          state.appts = JSON.parse(localStorage.getItem('hr_appts_ls') || '[]');
-          state.logs = JSON.parse(localStorage.getItem('hr_logs') || '[]');
-        },
-        async save(entity, data) {
-          const store = CFG.DB.stores[entity];
-          if (this.db) {
-            const tx = this.db.transaction(store, 'readwrite');
-            tx.objectStore(store).put(data);
-          } else {
-            localStorage.setItem(`hr_${entity}_ls`, JSON.stringify(state[entity === 'patients' ? 'patients' : entity === 'appts' ? 'appts' : 'logs']));
-          }
-        },
-        async delete(entity, id) {
-          if (this.db) {
-            const tx = this.db.transaction(CFG.DB.stores[entity], 'readwrite');
-            tx.objectStore(CFG.DB.stores[entity]).delete(id);
-          }
-        },
-        persistCounters() { localStorage.setItem(CFG.STORAGE_KEYS.counters, JSON.stringify(state.counters)); },
-        loadSettings() {
-          const s = JSON.parse(localStorage.getItem(CFG.STORAGE_KEYS.settings) || '{}');
-          if (s.logLevel) state.settings.logLevel = s.logLevel;
-          if (s.autoSave) state.settings.autoSave = s.autoSave;
-          Logger.init(state.settings.logLevel);
-        },
-        saveSettings() { localStorage.setItem(CFG.STORAGE_KEYS.settings, JSON.stringify(state.settings)); }
-      };
+    // === ЛОГИКА ===
+    const emailSvc = async (p, a, type='confirm') => {
+      try {
+        const [spec, cab] = a.doctor.split(' | ');
+        const params = { to_name: `${p.last} ${p.first}`, to_email: p.email, doctor_name: cab||spec, specialty: spec, date_time: `${a.date} ${a.time}`, appointment_id: `#${a.id}`, notes: a.reason||'Приём по расписанию' };
+        await emailjs.send(EMAILJS.svc, EMAILJS.tpl, params);
+        toast(`Email ${type==='confirm'?'подтверждения':'отмены'} отправлен`, 'success');
+      } catch(e) { console.error(e); toast('Ошибка отправки Email', 'error'); }
+    };
 
-      // === ВАЛИДАЦИЯ ===
-      const Validator = {
-        required: v => !!String(v).trim(),
-        email: v => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v),
-        phone: v => /^\+?[1-9]\d{9,15}$/.test(v.replace(/\D/g, '')),
-        age: v => {
-          if (!v) return false;
-          const b = new Date(v), t = new Date();
-          let age = t.getFullYear() - b.getFullYear();
-          if (t.getMonth() < b.getMonth() || (t.getMonth() === b.getMonth() && t.getDate() < b.getDate())) age--;
-          return age >= 0 && age <= 120;
-        },
-        future: v => v >= todayISO()
-      };
+    const handlePSubmit = async (e) => {
+      e.preventDefault();
+      $$('.form-control.is-invalid').forEach(clearErr);
+      const data = { last:$('#p-last').value.trim(), first:$('#p-first').value.trim(), mid:$('#p-mid').value.trim(), birth:$('#p-birth').value, phone:$('#p-phone').value.trim(), email:$('#p-email').value.trim(), policy:$('#p-policy').value.trim(), addr:$('#p-addr').value.trim() };
+      let ok = true;
+      if(!data.last) { setErr('p-last','Обязательно'); ok=false; }
+      if(!data.first) { setErr('p-first','Обязательно'); ok=false; }
+      if(!data.birth || !valid.age(data.birth)) { setErr('p-birth','Проверьте дату'); ok=false; }
+      if(!valid.phone(data.phone)) { setErr('p-phone','Формат: +7XXXXXXXXXX'); ok=false; }
+      if(!valid.email(data.email)) { setErr('p-email','Неверный email'); ok=false; }
+      if(!ok) return;
+      if(state.patients.some(p => p.phone.replace(/\D/g,'') === data.phone.replace(/\D/g,''))) return toast('Телефон уже зарегистрирован', 'error');
+      
+      const btn = $('#btn-save-p'); btn.disabled=true; btn.innerHTML='<span class="spinner"></span>';
+      state.patients.push({ id: state.nextP++, ...data, createdAt: new Date().toISOString() });
+      save(); renderP(); renderSelects(); e.target.reset(); btn.disabled=false; btn.textContent='Зарегистрировать';
+      toast('Пациент добавлен', 'success');
+    };
 
-      const setErr = (id, msg) => {
-        const el = $(`#${id}`); const err = $(`#err-${id}`);
-        if (el) el.classList.add('is-invalid');
-        if (err) err.textContent = msg;
-      };
-      const clearErr = id => {
-        const el = $(`#${id}`); const err = $(`#err-${id}`);
-        if (el) el.classList.remove('is-invalid');
-        if (err) err.textContent = '';
-      };
-      const clearForm = formId => $$(`.form-control.is-invalid`).forEach(el => clearErr(el.id.replace('err-','')));
+    const handleASubmit = async (e) => {
+      e.preventDefault();
+      $$('.form-control.is-invalid').forEach(clearErr);
+      const data = { patientId: parseInt($('#a-patient').value), doctor:$('#a-doctor').value, date:$('#a-date').value, time:$('#a-time').value, reason:$('#a-reason').value.trim() };
+      let ok = true;
+      if(!data.patientId) { setErr('a-patient','Выберите пациента'); ok=false; }
+      if(!data.doctor) { setErr('a-doctor','Выберите врача'); ok=false; }
+      if(!data.date || data.date < today()) { setErr('a-date','Дата не в прошлом'); ok=false; }
+      if(!data.time) { setErr('a-time','Выберите время'); ok=false; }
+      if(!ok) return;
+      if(state.appts.some(a => a.doctor===data.doctor && a.date===data.date && a.time===data.time && a.status!=='cancelled')) return toast('Врач занят в это время', 'error');
 
-      // === БИЗНЕС-ЛОГИКА ===
-      const Service = {
-        addPatient(data) {
-          const phoneNorm = data.phone.replace(/\D/g, '');
-          if (state.patients.some(p => p.phone.replace(/\D/g,'') === phoneNorm)) throw new Error('Пациент с таким телефоном уже зарегистрирован.');
-          const p = { id: state.counters.patientId++, ...sanitizeObj(data), createdAt: new Date().toISOString(), status: 'active' };
-          state.patients.push(p);
-          Store.save('patients', p);
-          Logger.log('INFO', 'Patient created', { id: p.id, name: `${p.last} ${p.first}` });
-          return p;
-        },
-        addAppt(data) {
-          const conflict = state.appts.find(a => a.doctor === data.doctor && a.date === data.date && a.time === data.time && a.status !== 'cancelled');
-          if (conflict) throw new Error(`Врач ${conflict.doctor} уже занят ${conflict.date} в ${conflict.time}`);
-          const a = { id: state.counters.apptId++, ...sanitizeObj(data), status: 'scheduled', createdAt: new Date().toISOString() };
-          state.appts.push(a);
-          Store.save('appts', a);
-          Logger.log('INFO', 'Appointment created', { id: a.id, doctor: a.doctor, time: a.date + ' ' + a.time });
-          return a;
-        },
-        updateApptStatus(id, status) {
-          const idx = state.appts.findIndex(a => a.id === id);
-          if (idx === -1) throw new Error('Запись не найдена');
-          state.appts[idx].status = status;
-          Store.save('appts', state.appts[idx]);
-          Logger.log('INFO', 'Status changed', { id, status });
-          return state.appts[idx];
-        },
-        deletePatient(id) {
-          const active = state.appts.some(a => a.patientId === id && a.status !== 'cancelled');
-          if (active) throw new Error('Нельзя удалить пациента с активными записями.');
-          state.patients = state.patients.filter(p => p.id !== id);
-          Store.delete('patients', id);
-          Logger.log('WARN', 'Patient deleted', { id });
-        },
-        wipeAll() {
-          state.patients = []; state.appts = []; state.logs = [];
-          state.counters = { patientId: 1000, apptId: 5000 };
-          localStorage.clear();
-          if (Store.db) {
-            const stores = Object.values(CFG.DB.stores);
-            const tx = Store.db.transaction(stores, 'readwrite');
-            stores.forEach(s => tx.objectStore(s).clear());
-          }
-          Logger.log('WARN', 'Database wiped');
-        }
-      };
+      const btn = $('#btn-save-a'); btn.disabled=true; btn.innerHTML='<span class="spinner"></span>';
+      const appt = { id: state.nextA++, ...data, status: 'scheduled', createdAt: new Date().toISOString() };
+      state.appts.push(appt); save(); renderA(); renderSelects();
+      const p = state.patients.find(x => x.id === data.patientId);
+      await emailSvc(p, appt, 'confirm');
+      e.target.reset(); btn.disabled=false; btn.textContent='Записать и отправить Email';
+      toast('Запись создана', 'success');
+    };
 
-      // === EMAILJS ===
-      const EmailSvc = {
-        ready: false,
-        queue: [],
-        init() {
+    // === СОБЫТИЯ ===
+    document.addEventListener('DOMContentLoaded', () => {
+      emailjs.init(EMAILJS.pub); load(); renderP(); renderA(); renderSelects(); updateStats();
+      
+      // Навигация
+      $$('.nav-btn').forEach(b => b.addEventListener('click', () => {
+        $$('.nav-btn').forEach(n => n.classList.remove('active'));
+        b.classList.add('active');
+        $$('#app-main section').forEach(s => s.classList.add('hidden'));
+        $(`#tab-${b.dataset.tab}`).classList.remove('hidden');
+        if(b.dataset.tab==='appointments') { renderA(); renderSelects(); }
+        if(b.dataset.tab==='dashboard') updateStats();
+      }));
+
+      // Формы
+      $('#patient-form').addEventListener('submit', handlePSubmit);
+      $('#appt-form').addEventListener('submit', handleASubmit);
+
+      // Таблица пациентов
+      $('#table-p').addEventListener('click', e => {
+        const btn = e.target.closest('button'); if(!btn) return;
+        const id = parseInt(btn.dataset.id), act = btn.dataset.action;
+        if(act==='del-p') modal('Удалить пациента?', 'Все его записи останутся в архиве.', () => { state.patients = state.patients.filter(p=>p.id!==id); save(); renderP(); renderSelects(); toast('Удалено'); });
+        if(act==='edit-p') toast('Редактирование в разработке', 'info');
+      });
+
+      // Таблица записей
+      $('#table-a').addEventListener('click', async e => {
+        const btn = e.target.closest('button'); if(!btn) return;
+        const id = parseInt(btn.dataset.id), act = btn.dataset.action;
+        const appt = state.appts.find(a => a.id === id);
+        if(act==='done') { appt.status='completed'; save(); renderA(); updateStats(); toast('Приём проведён'); }
+        if(act==='cancel') modal('Отменить запись?', 'Пациент получит уведомление.', async () => { appt.status='cancelled'; save(); renderA(); updateStats(); const p=state.patients.find(x=>x.id===appt.patientId); if(p) await emailSvc(p, appt, 'cancel'); });
+      });
+
+      // Фильтры
+      $('#search-p').addEventListener('input', e => { state.filter.search=e.target.value; renderP(); });
+      $('#btn-apply-filter').addEventListener('click', () => { state.filter.status=$('#filter-status').value; state.filter.date=$('#filter-date').value; renderA(); });
+
+      // Экспорт / Бэкап
+      $('#btn-export-p').addEventListener('click', () => {
+        if(!state.patients.length) return toast('Нет данных', 'warning');
+        const csv = 'ID,Фамилия,Имя,Телефон,Email,Дата рождения,Полис,Адрес\n' + state.patients.map(p=>`${p.id},"${p.last}","${p.first}","${p.phone}","${p.email}","${p.birth}","${p.policy}","${p.addr}"`).join('\n');
+        const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([`\uFEFF${csv}`],{type:'text/csv'})); a.download='patients.csv'; a.click();
+      });
+      $('#btn-download-backup').addEventListener('click', () => {
+        const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([JSON.stringify({patients:state.patients,appts:state.appts,count:{p:state.nextP,a:state.nextA}},null,2)],{type:'application/json'})); a.download=`backup_${today()}.json`; a.click();
+      });
+      $('#btn-restore-trigger').addEventListener('click', () => $('#input-restore').click());
+      $('#input-restore').addEventListener('change', e => {
+        const f = e.target.files[0]; if(!f) return;
+        const r = new FileReader(); r.onload = ev => {
           try {
-            emailjs.init(CFG.EMAILJS.pub);
-            this.ready = true;
-            Logger.log('INFO', 'EmailJS initialized');
-          } catch (e) {
-            Logger.log('ERROR', 'EmailJS init failed', e);
-          }
-        },
-        async send(type, patient, appt) {
-          if (!this.ready) throw new Error('EmailJS не инициализирован');
-          const [spec, cab] = appt.doctor.split(' | ');
-          const params = {
-            to_name: `${patient.last} ${patient.first}`,
-            to_email: patient.email,
-            doctor_name: cab || spec,
-            specialty: spec,
-            date_time: `${appt.date} ${appt.time}`,
-            appointment_id: `#${appt.id}`,
-            clinic_address: 'ул. Медицинская, 15, регистратура 1 этаж',
-            notes: appt.reason || 'Стандартный приём'
-          };
-          try {
-            await emailjs.send(CFG.EMAILJS.svc, CFG.EMAILJS.tpl, params);
-            Logger.log('INFO', `Email sent (${type})`, { id: appt.id });
-            return true;
-          } catch (err) {
-            Logger.log('ERROR', 'Email failed', { type, err: err.text || err.message });
-            throw err;
-          }
-        }
-      };
-
-      // === UI РЕНДЕРИНГ ===
-      const UI = {
-        toast(msg, type='info', ttl=4500) {
-          const box = $('#toast-area');
-          const t = document.createElement('div');
-          t.className = `toast toast-${type}`;
-          t.innerHTML = `<div class="toast-header"><span>${type==='success'?'✅':type==='error'?'❌':'ℹ️'} Уведомление</span><button class="toast-close">&times;</button></div><div>${escape(msg)}</div>`;
-          box.appendChild(t);
-          t.querySelector('.toast-close').onclick = () => t.remove();
-          setTimeout(() => { if(t.parentElement) t.remove(); }, ttl);
-        },
-        alert(msg, type='info') {
-          const box = $('#alert-area');
-          box.innerHTML = `<div class="alert alert-${type} alert-dismissible">${escape(msg)}<button class="alert-close">&times;</button></div>`;
-          setTimeout(() => { if(box.firstElementChild) box.firstElementChild.remove(); }, 6000);
-        },
-        renderPatients() {
-          const tbody = $('#tbody-patients'); const empty = $('#empty-patients');
-          tbody.innerHTML = '';
-          let list = [...state.patients];
-          if (state.filters.search) {
-            const q = state.filters.search.toLowerCase();
-            list = list.filter(p => `${p.last}${p.first}${p.mid}${p.phone}${p.policy}`.toLowerCase().includes(q));
-          }
-          if (state.filters.sort === 'name_asc') list.sort((a,b) => `${a.last}${a.first}`.localeCompare(`${b.last}${b.first}`));
-          else if (state.filters.sort === 'created_asc') list.sort((a,b) => a.createdAt.localeCompare(b.createdAt));
-          else list.sort((a,b) => b.createdAt.localeCompare(a.createdAt));
-
-          if (list.length === 0) { empty.classList.remove('hidden'); $('#table-patients').parentElement.classList.add('hidden'); return; }
-          empty.classList.add('hidden'); $('#table-patients').parentElement.classList.remove('hidden');
-          list.forEach(p => {
-            const tr = document.createElement('tr');
-            tr.innerHTML = `
-              <td>${p.id}</td>
-              <td>${escape(`${p.last} ${p.first} ${p.mid||''}`).trim()}</td>
-              <td>${fmtDate(p.birth)}</td>
-              <td><a href="tel:${escape(p.phone)}">${escape(p.phone)}</a></td>
-              <td><a href="mailto:${escape(p.email)}">${escape(p.email)}</a></td>
-              <td>${escape(p.policy||'—')}</td>
-              <td class="table-actions">
-                <button class="btn btn-sm btn-outline" data-action="edit-p" data-id="${p.id}">✏️</button>
-                <button class="btn btn-sm btn-danger" data-action="del-p" data-id="${p.id}">🗑</button>
-              </td>`;
-            tbody.appendChild(tr);
-          });
-        },
-        renderAppts() {
-          const tbody = $('#tbody-appts'); const empty = $('#empty-appts');
-          tbody.innerHTML = '';
-          let list = [...state.appts];
-          if (state.filters.status !== 'all') list = list.filter(a => a.status === state.filters.status);
-          if (state.filters.date) list = list.filter(a => a.date === state.filters.date);
-          list.sort((a,b) => `${a.date}${a.time}`.localeCompare(`${b.date}${b.time}`));
-          if (list.length === 0) { empty.classList.remove('hidden'); $('#table-appts').parentElement.classList.add('hidden'); return; }
-          empty.classList.add('hidden'); $('#table-appts').parentElement.classList.remove('hidden');
-          list.forEach(a => {
-            const p = state.patients.find(x => x.id === a.patientId);
-            const statusMap = { scheduled: ['Запланировано','badge-scheduled'], completed: ['Проведено','badge-completed'], cancelled: ['Отменено','badge-cancelled'] };
-            const [txt, cls] = statusMap[a.status] || ['—',''];
-            const tr = document.createElement('tr');
-            tr.innerHTML = `
-              <td>${a.id}</td>
-              <td>${p ? escape(`${p.last} ${p.first}`) : '<em>Удалён</em>'}</td>
-              <td>${escape(a.doctor)}</td>
-              <td>${a.date} ${a.time}</td>
-              <td><span class="badge ${cls}">${txt}</span></td>
-              <td title="${escape(a.reason||'')}">${escape((a.reason||'').slice(0,30))}${(a.reason||'').length>30?'...':''}</td>
-              <td class="table-actions">
-                ${a.status==='scheduled'?`
-                  <button class="btn btn-sm btn-success" data-action="done" data-id="${a.id}">✅</button>
-                  <button class="btn btn-sm btn-warning" data-action="noshow" data-id="${a.id}">⚠️</button>
-                  <button class="btn btn-sm btn-danger" data-action="cancel" data-id="${a.id}">❌</button>
-                `:'—'}
-              </td>`;
-            tbody.appendChild(tr);
-          });
-          const free = CFG.TIME_SLOTS.length - list.filter(a=>a.status!=='cancelled').length;
-          $('#badge-active-slots').textContent = `Доступно: ${Math.max(0,free)}`;
-        },
-        renderLogs() {
-          const tbody = $('#tbody-logs'); tbody.innerHTML = '';
-          state.logs.slice(0, 50).forEach(l => {
-            const tr = document.createElement('tr');
-            tr.innerHTML = `<td class="fs-sm">${fmtDateTime(l.ts)}</td><td><span class="badge ${l.lvl==='ERROR'?'badge-cancelled':l.lvl==='WARN'?'badge-no-show':'badge-scheduled'}">${l.lvl}</span></td><td>${escape(l.msg)}</td><td class="fs-sm text-muted">${l.data?escape(l.data):'—'}</td>`;
-            tbody.appendChild(tr);
-          });
-        },
-        updateStats() {
-          $('#stat-patients').textContent = state.patients.length;
-          $('#stat-scheduled').textContent = state.appts.filter(a=>a.status==='scheduled').length;
-          $('#stat-completed').textContent = state.appts.filter(a=>a.status==='completed').length;
-          $('#stat-cancelled').textContent = state.appts.filter(a=>['cancelled','no-show'].includes(a.status)).length;
-          $('#stat-emails').textContent = state.logs.filter(l=>l.msg.includes('Email sent')).length;
-          $('#stat-errors').textContent = state.logs.filter(l=>l.lvl==='ERROR').length;
-        },
-        populateSelects() {
-          const sel = $('#a-patient'); sel.innerHTML = '<option value="">-- Выберите пациента --</option>';
-          state.patients.filter(p=>p.status==='active').forEach(p => {
-            const o = document.createElement('option'); o.value = p.id; o.textContent = `${p.last} ${p.first} | ${p.phone}`; sel.appendChild(o);
-          });
-          const timeSel = $('#a-time'); timeSel.innerHTML = '<option value="">-- Выберите слот --</option>';
-          CFG.TIME_SLOTS.forEach(t => { const o = document.createElement('option'); o.value = t; o.textContent = t; timeSel.appendChild(o); });
-          $('#a-date').min = todayISO();
-        },
-        setView(view) {
-          state.activeView = view;
-          $$('.view-section').forEach(s => s.classList.toggle('hidden', s.id !== `view-${view}`));
-          $$('.nav-btn').forEach(b => {
-            const active = b.dataset.view === view;
-            b.classList.toggle('active', active);
-            b.setAttribute('aria-current', active ? 'page' : 'false');
-          });
-          if (view === 'appointments') { UI.populateSelects(); UI.renderAppts(); }
-          if (view === 'patients') UI.renderPatients();
-          if (view === 'dashboard') { UI.updateStats(); UI.renderLogs(); }
-        },
-        modal(title, body, confirmFn) {
-          const m = $('#modal');
-          $('#modal-title').textContent = title; $('#modal-body').innerHTML = body;
-          m.classList.add('active'); m.setAttribute('aria-hidden','false');
-          $('#modal-confirm').onclick = () => { if(confirmFn) confirmFn(); UI.closeModal(); };
-          $('#modal-cancel').onclick = UI.closeModal;
-          $('#modal-close').onclick = UI.closeModal;
-          setTimeout(() => $('#modal-confirm').focus(), 100);
-        },
-        closeModal() {
-          $('#modal').classList.remove('active'); $('#modal').setAttribute('aria-hidden','true');
-        }
-      };
-
-      // === КОНТРОЛЛЕРЫ ===
-      const Ctrl = {
-        async submitPatient(e) {
-          e.preventDefault(); clearForm();
-          const data = { last:$('#p-last').value, first:$('#p-first').value, mid:$('#p-mid').value, birth:$('#p-birth').value, phone:$('#p-phone').value, email:$('#p-email').value, policy:$('#p-policy').value, address:$('#p-address').value };
-          let valid = true;
-          if (!Validator.required(data.last)) { setErr('p-last','Обязательно'); valid=false; }
-          if (!Validator.required(data.first)) { setErr('p-first','Обязательно'); valid=false; }
-          if (!Validator.required(data.birth)) { setErr('p-birth','Укажите дату'); valid=false; }
-          else if (!Validator.age(data.birth)) { setErr('p-birth','Возраст 0-120 лет'); valid=false; }
-          if (!Validator.phone(data.phone)) { setErr('p-phone','Формат: +7XXXXXXXXXX'); valid=false; }
-          if (!Validator.email(data.email)) { setErr('p-email','Некорректный email'); valid=false; }
-          if (!valid) { UI.alert('Проверьте поля формы', 'danger'); return; }
-          try {
-            const btn = $('#btn-save-patient'); btn.disabled=true; btn.innerHTML='<span class="spinner"></span>';
-            Service.addPatient(data);
-            Store.persistCounters(); UI.renderPatients(); UI.populateSelects();
-            e.target.reset(); UI.toast('Пациент успешно зарегистрирован', 'success');
-          } catch(err) { UI.alert(err.message, 'danger'); }
-          finally { const btn=$('#btn-save-patient'); btn.disabled=false; btn.textContent='Зарегистрировать'; }
-        },
-        async submitAppt(e) {
-          e.preventDefault(); clearForm();
-          const data = { patientId: parseInt($('#a-patient').value), doctor:$('#a-doctor').value, date:$('#a-date').value, time:$('#a-time').value, reason:$('#a-reason').value };
-          let valid = true;
-          if (!data.patientId) { setErr('a-patient','Выберите пациента'); valid=false; }
-          if (!data.doctor) { setErr('a-doctor','Выберите врача'); valid=false; }
-          if (!data.date) { setErr('a-date','Укажите дату'); valid=false; }
-          else if (!Validator.future(data.date)) { setErr('a-date','Дата не в прошлом'); valid=false; }
-          if (!data.time) { setErr('a-time','Выберите время'); valid=false; }
-          if (!valid) { UI.alert('Заполните обязательные поля', 'danger'); return; }
-          const btn = $('#btn-save-appt'); btn.disabled=true; btn.innerHTML='<span class="spinner"></span>';
-          try {
-            const appt = Service.addAppt(data);
-            Store.persistCounters(); UI.renderAppts();
-            const p = state.patients.find(x=>x.id===data.patientId);
-            await EmailSvc.send('confirm', p, appt);
-            UI.toast(`Запись #${appt.id} создана. Email отправлен.`, 'success');
-            e.target.reset();
-          } catch(err) { UI.alert(err.message, 'danger'); }
-          finally { btn.disabled=false; btn.textContent='Записать и уведомить'; }
-        },
-        handleAction(e) {
-          const btn = e.target.closest('[data-action]'); if(!btn) return;
-          const act = btn.dataset.action, id = parseInt(btn.dataset.id);
-          if (act==='del-p') UI.modal('Удаление пациента', `Удалить запись #${id}? Активные записи будут заблокированы.`, () => { try{Service.deletePatient(id);UI.renderPatients();UI.populateSelects();UI.toast('Удалено','success');}catch(err){UI.alert(err.message,'danger');} });
-          else if (act==='done') { Service.updateApptStatus(id,'completed'); UI.renderAppts(); UI.updateStats(); UI.toast('Приём проведён','success'); }
-          else if (act==='noshow') { Service.updateApptStatus(id,'no-show'); UI.renderAppts(); UI.updateStats(); UI.toast('Помечено: Не явился','warning'); }
-          else if (act==='cancel') UI.modal('Отмена записи', 'Отменить приём и отправить уведомление?', async () => { const a=Service.updateApptStatus(id,'cancelled'); UI.renderAppts(); UI.updateStats(); const p=state.patients.find(x=>x.id===a.patientId); if(p) try{await EmailSvc.send('cancel',p,a);}catch{} UI.toast('Запись отменена','warning'); });
-        }
-      };
-
-      // === ИНИЦИАЛИЗАЦИЯ ===
-      const boot = async () => {
-        await Store.init(); Store.loadSettings(); EmailSvc.init();
-        $('#set-log-level').value = state.settings.logLevel;
-        $('#set-autosave').value = state.settings.autoSave;
-        $('#set-theme').value = state.settings.theme;
-        UI.setView('patients');
-        $('#patient-form').addEventListener('submit', Ctrl.submitPatient);
-        $('#appt-form').addEventListener('submit', Ctrl.submitAppt);
-        $$('.nav-btn').forEach(b => b.addEventListener('click', () => UI.setView(b.dataset.view)));
-        $('#app-container').addEventListener('click', Ctrl.handleAction);
-        $('#search-p').addEventListener('input', debounce(e => { state.filters.search=e.target.value; UI.renderPatients(); }, 250));
-        $('#sort-p').addEventListener('change', e => { state.filters.sort=e.target.value; UI.renderPatients(); });
-        $('#btn-apply-filter').addEventListener('click', () => { state.filters.status=$('#filter-status').value; state.filters.date=$('#filter-date').value; UI.renderAppts(); });
-        $('#btn-export-patients').addEventListener('click', () => {
-          if(!state.patients.length) return UI.alert('Нет данных','warning');
-          const csv = ['ID,Фамилия,Имя,Отчество,Телефон,Email,Дата рождения,Полис,Адрес'].join(',') + '\n' + state.patients.map(p=>`${p.id},"${p.last}","${p.first}","${p.mid||''}","${p.phone}","${p.email}","${p.birth}","${p.policy||''}","${p.address||''}"`).join('\n');
-          const blob = new Blob([`\uFEFF${csv}`], {type:'text/csv;charset=utf-8;'});
-          const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='patients_export.csv'; a.click();
-        });
-        $('#btn-download-backup').addEventListener('click', () => {
-          const data = { v:'2.0', exported: new Date().toISOString(), patients: state.patients, appts: state.appts, logs: state.logs, counters: state.counters };
-          const blob = new Blob([JSON.stringify(data,null,2)], {type:'application/json'});
-          const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=`backup_${todayISO()}.json`; a.click();
-        });
-        $('#input-restore').addEventListener('change', e => {
-          const f=e.target.files[0]; if(!f) return;
-          const r=new FileReader(); r.onload=ev=>{
-            try { const d=JSON.parse(ev.target.result); state.patients=d.patients||[]; state.appts=d.appts||[]; state.counters=d.counters||{patientId:1000,apptId:5000}; Store.save('patients',{}); Store.save('appts',{}); UI.setView('patients'); UI.toast('Данные восстановлены','success'); }
-            catch(err){ UI.alert('Ошибка файла','danger'); }
-          }; r.readAsText(f); e.target.value='';
-        });
-        $('#btn-wipe-data').addEventListener('click', () => UI.modal('⚠️ Полная очистка', 'Все данные будут удалены безвозвратно. Продолжить?', () => { Service.wipeAll(); UI.setView('patients'); UI.toast('База очищена','warning'); }));
-        $('#btn-clear-logs').addEventListener('click', () => { state.logs=[]; Store.persist(); UI.renderLogs(); UI.toast('Лог очищен'); });
-        $('#btn-save-settings').addEventListener('click', () => {
-          state.settings.logLevel=$('#set-log-level').value; state.settings.autoSave=parseInt($('#set-autosave').value)||30; state.settings.theme=$('#set-theme').value;
-          Logger.init(state.settings.logLevel); Store.saveSettings(); UI.toast('Настройки сохранены','success');
-        });
-        $('#btn-test-email').addEventListener('click', async () => {
-          const out=$('#diag-output'); out.textContent='Тест соединения с EmailJS...\n';
-          try { await EmailSvc.send('test', {last:'Тест',first:'Пользователь',email:'test@example.com'}, {id:'TEST',doctor:'Врач | Каб. 1',date:todayISO(),time:'12:00',reason:'Диагностика'}); out.textContent+='✅ Успешно\n'; }
-          catch(e) { out.textContent+=`❌ Ошибка: ${e.text||e.message}\n`; }
-        });
-        $('#btn-test-db').addEventListener('click', () => {
-          const out=$('#diag-output');
-          out.textContent=`IndexedDB: ${Store.db?'✅ Подключена':'❌ Отсутствует'}\nPatients: ${state.patients.length}\nAppointments: ${state.appts.length}\nLogs: ${state.logs.length}\nStorage Used: ${(JSON.stringify(state).length/1024).toFixed(2)} KB\n`;
-        });
-        $('#btn-perf-report').addEventListener('click', () => {
-          const out=$('#diag-output'); const p=performance.getEntriesByType('navigation')[0]||{};
-          out.textContent=`DOM Content Loaded: ${(p.domContentLoadedEventEnd-p.startTime).toFixed(0)}ms\nLoad Time: ${(p.loadEventEnd-p.startTime).toFixed(0)}ms\nMemory: ${performance.memory?.usedJSHeapSize?((performance.memory.usedJSHeapSize/1024/1024).toFixed(2)+' MB'):'N/A'}\n`;
-        });
-        $('#modal-close').addEventListener('click', UI.closeModal);
-        document.addEventListener('keydown', e => { if(e.key==='Escape') UI.closeModal(); if(e.ctrlKey && e.key==='s') { e.preventDefault(); Store.persistCounters(); UI.toast('Данные сохранены'); } });
-        setInterval(() => { Store.persistCounters(); Logger.persist(); }, state.settings.autoSave * 1000);
-        window.addEventListener('beforeunload', () => { Store.persistCounters(); Logger.persist(); });
-        Logger.log('INFO', 'App booted', { ua: navigator.userAgent });
-      };
-
-      if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot); else boot();
-      return { init: boot };
-    })();
+            const d = JSON.parse(ev.target.result); state.patients=d.patients||[]; state.appts=d.appts||[]; if(d.count) { state.nextP=d.count.p; state.nextA=d.count.a; }
+            save(); renderP(); renderA(); renderSelects(); updateStats(); toast('Данные восстановлены', 'success');
+          } catch(err) { toast('Ошибка файла', 'error'); }
+        }; r.readAsText(f); e.target.value='';
+      });
+      $('#btn-wipe').addEventListener('click', () => modal('Очистить всё?', 'Это действие нельзя отменить.', () => { localStorage.clear(); state.patients=[]; state.appts=[]; state.nextP=1000; state.nextA=5000; renderP(); renderA(); renderSelects(); updateStats(); toast('База очищена'); }));
+    });
   </script>
 </body>
 </html>
