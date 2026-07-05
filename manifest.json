@@ -8,13 +8,13 @@
   "theme_color": "#6366f1",
   "icons": [
     {
-      "src": "https://raw.githubusercontent.com/wildberries1/wildberries1/main/icon-192.png",
+      "src": "./icon-192x192.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any maskable"
     },
     {
-      "src": "https://raw.githubusercontent.com/wildberries1/wildberries1/main/icon-512.png",
+      "src": "./icon-512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any maskable"
