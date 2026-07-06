@@ -7,10 +7,23 @@
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <title>Милорды - Мессенджер</title>
+    
+    <!-- Windows App Meta -->
+    <meta name="application-name" content="Милорды">
+    <meta name="msapplication-TileColor" content="#6366f1">
+    <meta name="msapplication-TileImage" content="./icon-192x192.png">
+    <meta name="msapplication-config" content="./browserconfig.xml">
+    <meta name="msapplication-starturl" content="./index.html">
+    <meta name="msapplication-tooltip" content="Элитный мессенджер">
+    <meta name="msapplication-navbutton-color" content="#6366f1">
+    
+    <title>Милорды - Элитный Мессенджер</title>
     <link rel="manifest" href="manifest.json">
+    <link rel="icon" type="image/png" sizes="192x192" href="./icon-192x192.png">
+    <link rel="apple-touch-icon" href="./icon-512.png">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         :root {
@@ -20,10 +33,15 @@
             --text-primary: #f1f5f9; --text-secondary: #94a3b8; --text-muted: #64748b;
             --gradient-1: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             --gradient-2: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            --gradient-3: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
             --shadow-lg: 0 10px 15px -3px rgba(0,0,0,0.3);
             --shadow-xl: 0 20px 25px -5px rgba(0,0,0,0.4);
         }
-        body { font-family: 'Inter', sans-serif; background: var(--dark-bg); color: var(--text-primary); overflow: hidden; height: 100vh; }
+        body.light-theme {
+            --dark-bg: #f8fafc; --dark-surface: #ffffff; --dark-border: #e2e8f0;
+            --text-primary: #1e293b; --text-secondary: #64748b; --text-muted: #94a3b8;
+        }
+        body { font-family: 'Inter', sans-serif; background: var(--dark-bg); color: var(--text-primary); overflow: hidden; height: 100vh; transition: all 0.3s; }
         .screen { display: none; height: 100vh; }
         .screen.active { display: flex; }
 
@@ -45,6 +63,8 @@
         .btn-primary:hover { transform: translateY(-2px); box-shadow: var(--shadow-lg); }
         .btn-secondary { padding: 0.75rem 1.5rem; background: var(--dark-surface); border: 1px solid var(--dark-border); border-radius: 10px; color: var(--text-primary); cursor: pointer; }
         .btn-secondary:hover { background: var(--dark-border); }
+        .btn-icon { width: 40px; height: 40px; border-radius: 10px; border: none; background: var(--dark-surface); color: var(--text-primary); cursor: pointer; display: flex; align-items: center; justify-content: center; }
+        .btn-icon:hover { background: var(--primary); }
 
         #mainScreen { flex-direction: row; }
         .sidebar { width: 350px; background: var(--dark-surface); border-right: 1px solid var(--dark-border); display: flex; flex-direction: column; }
@@ -55,14 +75,6 @@
         .avatar.online::after { content: ''; position: absolute; bottom: 2px; right: 2px; width: 12px; height: 12px; background: var(--success); border-radius: 50%; border: 2px solid var(--dark-surface); }
         .animated-avatar.pulse { animation: pulse 2s ease-in-out infinite; }
         @keyframes pulse { 0%,100% { box-shadow: 0 0 0 0 rgba(99,102,241,0.7); } 50% { box-shadow: 0 0 0 15px rgba(99,102,241,0); } }
-        .animated-avatar.rotate { animation: rotate 3s linear infinite; }
-        @keyframes rotate { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
-        .animated-avatar.bounce { animation: bounce 1s ease-in-out infinite; }
-        @keyframes bounce { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
-        .animated-avatar.glow { animation: glow 2s ease-in-out infinite; }
-        @keyframes glow { 0%,100% { box-shadow: 0 0 10px rgba(99,102,241,0.5); } 50% { box-shadow: 0 0 30px rgba(99,102,241,0.8); } }
-        .animated-avatar.rainbow { animation: rainbow 3s linear infinite; }
-        @keyframes rainbow { 0% { box-shadow: 0 0 20px #ff0000; } 33% { box-shadow: 0 0 20px #00ff00; } 66% { box-shadow: 0 0 20px #0000ff; } 100% { box-shadow: 0 0 20px #ff0000; } }
         .user-info { flex: 1; min-width: 0; }
         .user-info h3 { font-size: 0.95rem; margin-bottom: 0.2rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         .user-info p { font-size: 0.8rem; color: var(--text-muted); }
@@ -266,6 +278,18 @@
         .notification.error i { color: var(--danger); }
         .notification.info i { color: var(--primary); }
 
+        /* Theme Toggle */
+        .theme-toggle { position: fixed; bottom: 20px; right: 20px; width: 50px; height: 50px; background: var(--gradient-1); border: none; border-radius: 50%; color: white; cursor: pointer; box-shadow: var(--shadow-lg); z-index: 100; }
+        .theme-toggle:hover { transform: scale(1.1); }
+
+        /* Search Bar */
+        .search-bar { padding: 0.75rem 1rem; background: var(--dark-surface); border-bottom: 1px solid var(--dark-border); }
+        .search-bar input { width: 100%; padding: 0.75rem 1rem 0.75rem 2.5rem; background: var(--dark-bg); border: 1px solid var(--dark-border); border-radius: 10px; color: var(--text-primary); }
+        .search-bar i { position: absolute; left: 2rem; top: 50%; transform: translateY(-50%); color: var(--text-muted); }
+
+        /* Online Users Counter */
+        .online-counter { padding: 0.5rem 1rem; background: rgba(16,185,129,0.1); border-left: 3px solid var(--success); color: var(--success); font-size: 0.85rem; font-weight: 600; }
+
         @media (max-width: 768px) {
             .sidebar { width: 100%; position: fixed; bottom: 0; height: 65px; flex-direction: row; border-right: none; border-top: 1px solid var(--dark-border); z-index: 100; }
             .sidebar-header, .chat-list-container, .logout-btn { display: none; }
@@ -323,6 +347,7 @@
                     <div class="chat-actions">
                         <button class="icon-btn" id="toggleNotifications" title="Уведомления"><i class="fas fa-bell"></i></button>
                         <button class="icon-btn" id="emojiBtn" title="Эмодзи"><i class="far fa-smile"></i></button>
+                        <button class="icon-btn" id="themeToggle" title="Сменить тему"><i class="fas fa-moon"></i></button>
                     </div>
                 </header>
                 <div class="status-stories" id="statusStories">
@@ -338,6 +363,7 @@
                         <button class="tool-btn" id="voiceBtn" title="Голосовое"><i class="fas fa-microphone"></i></button>
                         <button class="tool-btn" id="circleBtn" title="Кружочек"><i class="fas fa-video"></i></button>
                         <button class="tool-btn" id="statusBtn" title="Статус"><i class="fas fa-plus"></i></button>
+                        <button class="tool-btn" id="fileBtn" title="Файл"><i class="fas fa-paperclip"></i></button>
                     </div>
                     <div class="message-input-wrapper">
                         <textarea id="groupMessageInput" placeholder="Написать сообщение..." rows="1"></textarea>
@@ -369,6 +395,11 @@
 
             <div id="membersTab" class="tab-content">
                 <header class="chat-header"><h2>Контакты</h2></header>
+                <div class="search-bar" style="position:relative">
+                    <i class="fas fa-search"></i>
+                    <input type="text" id="membersSearch" placeholder="Поиск контактов...">
+                </div>
+                <div class="online-counter" id="onlineCounter">0 участников онлайн</div>
                 <div class="members-list" id="membersList"></div>
             </div>
 
@@ -379,6 +410,7 @@
         </main>
     </div>
 
+    <!-- Модальные окна (Settings, Voice, Circle, Status, Call, Delete) -->
     <div id="settingsModal" class="modal">
         <div class="modal-content">
             <div class="modal-header"><h2>Настройки профиля</h2><button class="close-btn" id="closeSettings"><i class="fas fa-times"></i></button></div>
@@ -504,10 +536,12 @@
     </div>
 
     <div id="notifications" class="notifications-container"></div>
+    <button class="theme-toggle" id="floatingThemeToggle" title="Сменить тему"><i class="fas fa-moon"></i></button>
 
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
     <script>
+        // Firebase Config
         const firebaseConfig = {
             apiKey: "AIzaSyDXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX",
             authDomain: "dtv-bank.firebaseapp.com",
@@ -527,6 +561,7 @@
         let recordingInterval = null, circleRecordingInterval = null, typingTimeout = null;
         let notificationsEnabled = true, messageToDelete = null;
         let peerConnection = null, localStream = null, currentCallId = null, selectedAvatar = null;
+        let isDarkTheme = true;
 
         const availableAvatars = [
             'https://api.dicebear.com/7.6/adventurer/svg?seed=Felix','https://api.dicebear.com/7.6/adventurer/svg?seed=Aneka',
@@ -536,7 +571,7 @@
             'https://api.dicebear.com/7.6/avataaars/svg?seed=Av1','https://api.dicebear.com/7.6/lorelei/svg?seed=Lor1'
         ];
 
-        const emojis = ['😀','😁','😂','','😃','😄','😅','','😉','😊','😋','😎','😍','😘','🥰','','😙','😚','🙂','','🤩','🤔','','😐','😑','😶','🙄','😏','😣','','😮','🤐','😯','😪','😫','🥱','','😌','😛','😜','','🤤','😒','😓','😔','😕','🙃','🤑','😲','☹️','🙁','😖','😞','','😤','😢','😭','😦','😧','😨','😩','🤯','😬','😰','😱','🥵','🥶','','🤪','😵','','😠','😡','🤬','😷','🤒','🤕','','🤮','🤧','','🥳','🥺','','🤡','🤥','🤫','🤭','🧐','🤓'];
+        const emojis = ['😀','😁','😂','','😃','😄','😅','','😉','😊','😋','😎','😍','😘','🥰','','😙','😚','🙂','','🤩','🤔','','😐','😑','😶','🙄','😏','😣','','😮','🤐','','😪','😫','🥱','','😌','😛','😜','','🤤','','😓','😔','😕','🙃','🤑','😲','☹️','','😖','😞','','😤','😢','😭','😦','😧','😨','😩','🤯','😬','😰','😱','','🥶','','🤪','😵','','😠','😡','🤬','😷','🤒','','','🤮','🤧','','🥳','🥺','','🤡','🤥','🤫','🤭','🧐','🤓'];
         const reactionEmojis = ['👍','👎','❤️','😂','😮','😢','😡'];
 
         document.addEventListener('DOMContentLoaded', function() {
@@ -545,6 +580,7 @@
             initEmojiPicker();
             registerServiceWorker();
             requestNotificationPermission();
+            loadTheme();
         });
 
         function checkAuth() {
@@ -609,6 +645,9 @@
             document.getElementById('deleteForMe').addEventListener('click', () => deleteMessage('me'));
             document.getElementById('deleteForEveryone').addEventListener('click', () => deleteMessage('everyone'));
             document.getElementById('toggleNotifications').addEventListener('click', toggleNotifications);
+            document.getElementById('themeToggle').addEventListener('click', toggleTheme);
+            document.getElementById('floatingThemeToggle').addEventListener('click', toggleTheme);
+            document.getElementById('membersSearch').addEventListener('input', searchMembers);
         }
 
         function initEmojiPicker() {
@@ -627,6 +666,17 @@
         }
 
         function toggleEmojiPicker() { document.getElementById('emojiPicker').classList.toggle('active'); }
+        function toggleTheme() {
+            isDarkTheme = !isDarkTheme;
+            document.body.classList.toggle('light-theme');
+            document.getElementById('themeToggle').innerHTML = isDarkTheme ? '<i class="fas fa-moon"></i>' : '<i class="fas fa-sun"></i>';
+            document.getElementById('floatingThemeToggle').innerHTML = isDarkTheme ? '<i class="fas fa-moon"></i>' : '<i class="fas fa-sun"></i>';
+            localStorage.setItem('theme', isDarkTheme ? 'dark' : 'light');
+        }
+        function loadTheme() {
+            const theme = localStorage.getItem('theme');
+            if (theme === 'light') toggleTheme();
+        }
 
         async function handleLogin(e) {
             e.preventDefault();
@@ -743,7 +793,7 @@
             let text = lastMessage.text || 'Нет сообщений';
             let icon = '';
             if (lastMessage.type === 'voice') { icon = '🎤 '; text = 'Голосовое сообщение'; }
-            else if (lastMessage.type === 'circle') { icon = ' '; text = 'Кружочек'; }
+            else if (lastMessage.type === 'circle') { icon = '🎥 '; text = 'Кружочек'; }
             div.innerHTML = `
                 <div class="chat-avatar"><div class="avatar ${user.online ? 'online' : ''}"><img src="${user.avatar || availableAvatars[0]}" alt=""></div></div>
                 <div class="chat-info">
@@ -929,9 +979,11 @@
             database.ref('users').once('value').then(snapshot => {
                 const list = document.getElementById('membersList');
                 list.innerHTML = '';
+                let onlineCount = 0;
                 snapshot.forEach(child => {
                     if (child.key !== currentUserId) {
                         const user = child.val();
+                        if (user.online) onlineCount++;
                         const div = document.createElement('div');
                         div.className = 'member-item';
                         div.onclick = () => openPrivateChat(child.key, user);
@@ -941,6 +993,15 @@
                         list.appendChild(div);
                     }
                 });
+                document.getElementById('onlineCounter').textContent = onlineCount + ' участников онлайн';
+            });
+        }
+
+        function searchMembers() {
+            const query = document.getElementById('membersSearch').value.toLowerCase();
+            document.querySelectorAll('.member-item').forEach(item => {
+                const text = item.textContent.toLowerCase();
+                item.style.display = text.includes(query) ? 'flex' : 'none';
             });
         }
 
@@ -1362,7 +1423,7 @@
             container.appendChild(div);
             setTimeout(() => { div.style.animation = 'slideIn 0.3s reverse'; setTimeout(()=>div.remove(), 300); }, 3000);
             if ('Notification' in window && Notification.permission === 'granted') {
-                new Notification('Милорды', { body: message, icon: '', tag: 'milordy' });
+                new Notification('Милорды', { body: message, icon: '👑', tag: 'milordy' });
             }
         }
 
